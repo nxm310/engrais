@@ -1,0 +1,1199 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VICON — Épandage Engrais</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f1209;
+    --surface: #181d0e;
+    --card: #1e2512;
+    --border: #2e3a1a;
+    --accent: #b8e04a;
+    --accent-dim: #7aaa1a;
+    --text: #e8f0d0;
+    --text-muted: #7a8a5a;
+    --text-dim: #4a5a2a;
+    --done: #4aaa6a;
+    --done-bg: #0e2018;
+    --sac-color: #f0c060;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 18px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2rem;
+    letter-spacing: 0.12em;
+    color: var(--accent);
+  }
+
+  .logo span {
+    display: block;
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 0.3em;
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    margin-top: -4px;
+  }
+
+  .header-meta {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    text-align: right;
+    line-height: 1.8;
+  }
+
+  .tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    padding: 0 32px;
+  }
+
+  .tab {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    padding: 12px 20px;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+    background: none;
+    border-top: none; border-left: none; border-right: none;
+  }
+
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .tab:hover:not(.active) { color: var(--text-muted); }
+
+  main {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 32px 24px 80px;
+  }
+
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  .section-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.3em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .global-bar {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin-bottom: 24px;
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    gap: 16px;
+    align-items: end;
+  }
+
+  .field-group { display: flex; flex-direction: column; gap: 8px; }
+
+  label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.2em;
+    color: var(--text-muted);
+    text-transform: uppercase;
+  }
+
+  select, input[type="number"], input[type="text"], input[type="date"] {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1rem;
+    padding: 11px 16px;
+    border-radius: 6px;
+    outline: none;
+    width: 100%;
+    transition: border-color 0.2s;
+    -webkit-appearance: none;
+  }
+
+  select {
+    cursor: pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237a8a5a' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    padding-right: 36px;
+  }
+
+  select:focus, input:focus { border-color: var(--accent-dim); }
+
+  .qty-wrapper { display: flex; align-items: center; }
+
+  .qty-wrapper input {
+    border-radius: 6px 0 0 6px;
+    width: 90px;
+    text-align: right;
+  }
+
+  .qty-unit {
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-left: none;
+    color: var(--text-muted);
+    padding: 11px 12px;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    border-radius: 0 6px 6px 0;
+    white-space: nowrap;
+  }
+
+  .parcelle-row { margin-bottom: 24px; }
+
+  .recap-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    display: none;
+    animation: fadeIn 0.25s ease;
+  }
+
+  .recap-card.visible { display: block; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .card-header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 18px 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    transition: background 0.3s;
+  }
+
+  .parcelle-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2rem;
+    letter-spacing: 0.06em;
+    color: var(--accent);
+    line-height: 1;
+  }
+
+  .done-badge {
+    display: none;
+    background: var(--done);
+    color: var(--bg);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    padding: 4px 10px;
+    border-radius: 20px;
+    text-transform: uppercase;
+    margin-top: 6px;
+  }
+
+  .done-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .done-row input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    accent-color: var(--done);
+    cursor: pointer;
+  }
+
+  .done-row-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .recap-card.done-state { border-color: var(--done); }
+  .recap-card.done-state .done-badge { display: inline-block; }
+  .recap-card.done-state .card-header { background: var(--done-bg); }
+
+  .info-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .info-cell {
+    padding: 16px 28px;
+    border-right: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .info-cell:nth-child(2n) { border-right: none; }
+  .info-cell:nth-last-child(-n+2) { border-bottom: none; }
+
+  .info-cell-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 5px;
+  }
+
+  .info-cell-value {
+    font-size: 1.4rem;
+    font-weight: 300;
+    color: var(--text);
+  }
+
+  .info-cell-value em {
+    font-style: normal;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    margin-left: 4px;
+  }
+
+  .descentes {
+    padding: 20px 28px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .descentes-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.3em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+
+  .descentes-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .descente-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 18px;
+  }
+
+  .descente-block-label { margin-bottom: 10px; }
+
+  .rang-badge {
+    background: var(--accent);
+    color: var(--bg);
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+  }
+
+  .descente-values { display: flex; flex-direction: column; gap: 7px; }
+
+  .descente-val-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+
+  .descente-val-label { font-size: 0.78rem; color: var(--text-muted); }
+
+  .descente-val-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 1.05rem;
+  }
+
+  .descente-val-num.kg  { color: var(--accent); }
+  .descente-val-num.sac { color: var(--sac-color); }
+
+  .total-section {
+    padding: 18px 28px;
+    border-bottom: 1px solid var(--border);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .total-cell { display: flex; flex-direction: column; justify-content: center; }
+  .total-cell:first-child { border-right: 1px solid var(--border); padding-right: 28px; }
+  .total-cell:last-child  { padding-left: 28px; }
+
+  .total-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 3px;
+  }
+
+  .total-sub {
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    font-family: 'DM Mono', monospace;
+    margin-bottom: 5px;
+  }
+
+  .total-value {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2.4rem;
+    color: var(--accent);
+    letter-spacing: 0.05em;
+    line-height: 1;
+  }
+
+  .total-value span {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.85rem;
+    color: var(--accent-dim);
+    letter-spacing: 0.1em;
+    margin-left: 5px;
+  }
+
+  .total-value.sac-total { color: var(--sac-color); }
+  .total-value.sac-total span { color: #c09030; }
+
+  .validate-btn {
+    width: 100%;
+    background: var(--accent);
+    color: var(--bg);
+    border: none;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.1rem;
+    letter-spacing: 0.15em;
+    padding: 14px;
+    cursor: pointer;
+    transition: background 0.2s;
+    border-radius: 0 0 10px 10px;
+  }
+
+  .validate-btn:hover { background: var(--accent-dim); }
+  .validate-btn.validated { background: var(--done); }
+
+  .empty-state {
+    text-align: center;
+    padding: 60px 0;
+    color: var(--text-dim);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+  }
+
+  .empty-icon { font-size: 2.5rem; margin-bottom: 12px; opacity: 0.3; }
+
+  .print-btn {
+    display: block;
+    width: 100%;
+    margin-top: 16px;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    padding: 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .print-btn:hover { border-color: var(--accent-dim); color: var(--accent); }
+
+  /* ── HISTORIQUE ── */
+  .histo-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+
+  .histo-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.6rem;
+    letter-spacing: 0.1em;
+    color: var(--accent);
+  }
+
+  .clear-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    padding: 7px 14px;
+    border-radius: 5px;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: all 0.2s;
+  }
+
+  .clear-btn:hover { border-color: #e06a4a; color: #e06a4a; }
+
+  .histo-empty {
+    text-align: center;
+    padding: 60px 0;
+    color: var(--text-dim);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.2em;
+  }
+
+  .histo-list { display: flex; flex-direction: column; gap: 10px; }
+
+  .histo-item {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 20px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 12px;
+    align-items: center;
+    animation: fadeIn 0.2s ease;
+  }
+
+  .histo-item.done-item { border-color: var(--done); background: var(--done-bg); }
+
+  .histo-item-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.3rem;
+    letter-spacing: 0.06em;
+    color: var(--text);
+  }
+
+  .histo-item-detail {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    color: var(--text-muted);
+    margin-top: 4px;
+    line-height: 1.8;
+  }
+
+  .histo-item-right {
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+  }
+
+  .histo-status {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 3px 9px;
+    border-radius: 20px;
+  }
+
+  .histo-status.done    { background: var(--done); color: var(--bg); }
+  .histo-status.pending { background: var(--border); color: var(--text-muted); }
+
+  .histo-del {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    cursor: pointer;
+    font-size: 0.68rem;
+    font-family: 'DM Mono', monospace;
+    padding: 4px 9px;
+    border-radius: 4px;
+    transition: all 0.2s;
+    letter-spacing: 0.1em;
+  }
+
+  .histo-del:hover { border-color: #e06a4a; color: #e06a4a; }
+
+  .histo-edit {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 0.68rem;
+    font-family: 'DM Mono', monospace;
+    padding: 4px 9px;
+    border-radius: 4px;
+    transition: all 0.2s;
+    letter-spacing: 0.1em;
+  }
+
+  .histo-edit:hover { border-color: var(--accent-dim); color: var(--accent); }
+
+  /* ── MODAL ÉDITION ── */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px;
+    width: 90%;
+    max-width: 480px;
+    animation: fadeIn 0.2s ease;
+  }
+
+  .modal-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.5rem;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+    margin-bottom: 20px;
+  }
+
+  .modal-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+
+  .modal-grid .field-group { gap: 6px; }
+
+  .modal-grid input, .modal-grid select {
+    font-size: 0.9rem;
+    padding: 9px 12px;
+  }
+
+  .modal-done-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    cursor: pointer;
+  }
+
+  .modal-done-row input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--done);
+  }
+
+  .modal-done-row span {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .modal-actions {
+    display: flex;
+    gap: 10px;
+  }
+
+  .modal-save {
+    flex: 1;
+    background: var(--accent);
+    color: var(--bg);
+    border: none;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1rem;
+    letter-spacing: 0.12em;
+    padding: 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .modal-save:hover { background: var(--accent-dim); }
+
+  .modal-cancel {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.15em;
+    padding: 12px 18px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+  }
+
+  .modal-cancel:hover { border-color: var(--text-muted); color: var(--text); }
+
+  .progress-bar-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin-bottom: 20px;
+  }
+
+  .progress-bar-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .progress-bar-track {
+    background: var(--border);
+    border-radius: 4px;
+    height: 6px;
+    overflow: hidden;
+  }
+
+  .progress-bar-fill {
+    background: var(--accent);
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.4s ease;
+  }
+
+  @media print {
+    header, .tabs, .global-bar, .parcelle-row, .validate-btn, .print-btn { display: none !important; }
+    body { background: white; color: black; }
+    .card-header { background: #f5f5f5 !important; }
+    .recap-card { border: 1px solid #ccc; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    VICON
+    <span>ÉPANDAGE ENGRAIS — SCEV CHAMPAGNE</span>
+  </div>
+  <div class="header-meta">
+    N° Siret 42264831100013<br>
+    Commune CHARLY
+  </div>
+</header>
+
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('saisie', this)">Saisie</button>
+  <button class="tab" onclick="switchTab('historique', this)">Historique <span id="histo-count-badge"></span></button>
+</div>
+
+<main>
+
+  <!-- ═══ TAB SAISIE ═══ -->
+  <div class="tab-content active" id="tab-saisie">
+
+    <!-- BARRE GLOBALE : Référence + Qté/ha + Date -->
+    <div class="global-bar">
+      <div class="field-group">
+        <label>Référence engrais (campagne)</label>
+        <input type="text" id="field-ref" placeholder="ex: NPK 15-15-15 lot#2024…" oninput="onRefChange()">
+      </div>
+      <div class="field-group">
+        <label>Qté / ha</label>
+        <div class="qty-wrapper">
+          <input type="number" id="qty-ha" value="1000" min="1" step="1">
+          <div class="qty-unit">kg/ha</div>
+        </div>
+      </div>
+      <div class="field-group">
+        <label>Date</label>
+        <input type="date" id="field-date">
+      </div>
+    </div>
+
+    <!-- SELECT PARCELLE -->
+    <div class="parcelle-row">
+      <div class="section-label">Parcelle</div>
+      <select id="parcelle-select">
+        <option value="">— Sélectionner une parcelle —</option>
+      </select>
+    </div>
+
+    <!-- FICHE RÉCAP -->
+    <div class="recap-card" id="recap">
+
+      <div class="card-header">
+        <div>
+          <div class="parcelle-name" id="rc-nom">—</div>
+          <div class="done-badge">✓ Parcelle faite</div>
+        </div>
+        <label class="done-row">
+          <input type="checkbox" id="done-check" onchange="toggleDone()">
+          <span class="done-row-label">Marquer comme faite</span>
+        </label>
+      </div>
+
+      <div class="info-grid">
+        <div class="info-cell">
+          <div class="info-cell-label">Longueur des rangs</div>
+          <div class="info-cell-value" id="rc-longueur">—<em>m</em></div>
+        </div>
+        <div class="info-cell">
+          <div class="info-cell-label">Nombre de rangs</div>
+          <div class="info-cell-value" id="rc-rangs">—</div>
+        </div>
+        <div class="info-cell">
+          <div class="info-cell-label">Surface</div>
+          <div class="info-cell-value" id="rc-surface">—<em>ha</em></div>
+        </div>
+        <div class="info-cell">
+          <div class="info-cell-label">Référence engrais</div>
+          <div class="info-cell-value" id="rc-ref-display" style="font-size:0.9rem; font-family:'DM Mono',monospace; color:var(--accent-dim); padding-top:3px;">—</div>
+        </div>
+      </div>
+
+      <div class="descentes">
+        <div class="descentes-title">Quantité par descente</div>
+        <div class="descentes-grid">
+          <div class="descente-block">
+            <div class="descente-block-label"><span class="rang-badge">9 RANGS</span></div>
+            <div class="descente-values">
+              <div class="descente-val-row">
+                <div class="descente-val-label">En kg</div>
+                <div class="descente-val-num kg" id="d9-kg">—</div>
+              </div>
+              <div class="descente-val-row">
+                <div class="descente-val-label">En sacs</div>
+                <div class="descente-val-num sac" id="d9-sac">—</div>
+              </div>
+            </div>
+          </div>
+          <div class="descente-block">
+            <div class="descente-block-label"><span class="rang-badge" style="background:var(--text-muted);">11 RANGS</span></div>
+            <div class="descente-values">
+              <div class="descente-val-row">
+                <div class="descente-val-label">En kg</div>
+                <div class="descente-val-num kg" id="d11-kg">—</div>
+              </div>
+              <div class="descente-val-row">
+                <div class="descente-val-label">En sacs</div>
+                <div class="descente-val-num sac" id="d11-sac">—</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="total-section">
+        <div class="total-cell">
+          <div class="total-label">Quantité totale parcelle</div>
+          <div class="total-sub">surface × qté/ha</div>
+          <div class="total-value" id="rc-total">—<span>kg</span></div>
+        </div>
+        <div class="total-cell">
+          <div class="total-label">Nombre total de sacs</div>
+          <div class="total-sub">total ÷ 25 kg/sac</div>
+          <div class="total-value sac-total" id="rc-total-sac">—<span>sacs</span></div>
+        </div>
+      </div>
+
+      <button class="validate-btn" id="validate-btn" onclick="saveToHistory()">
+        ＋ Enregistrer dans l'historique
+      </button>
+
+    </div>
+
+    <div class="empty-state" id="empty-state">
+      <div class="empty-icon">🌿</div>
+      Sélectionnez une parcelle pour afficher la fiche
+    </div>
+
+    <button class="print-btn" id="print-btn" style="display:none" onclick="window.print()">
+      ↓ Imprimer / Exporter la fiche
+    </button>
+
+  </div>
+
+  <!-- ═══ TAB HISTORIQUE ═══ -->
+  <div class="tab-content" id="tab-historique">
+
+    <div class="histo-header">
+      <div class="histo-title">Historique</div>
+      <button class="clear-btn" onclick="clearHistory()">Tout effacer</button>
+    </div>
+
+    <div class="progress-bar-wrap" id="progress-wrap" style="display:none">
+      <div class="progress-bar-label">
+        <span>Avancement campagne</span>
+        <span id="progress-text">0 / 18 parcelles faites</span>
+      </div>
+      <div class="progress-bar-track">
+        <div class="progress-bar-fill" id="progress-fill" style="width:0%"></div>
+      </div>
+    </div>
+
+    <div id="histo-list" class="histo-list"></div>
+    <div class="histo-empty" id="histo-empty">
+      <div class="empty-icon">📋</div>
+      Aucune entrée enregistrée
+    </div>
+
+  </div>
+
+</main>
+
+<!-- MODAL ÉDITION -->
+<div class="modal-overlay" id="edit-modal" onclick="closeModal()">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-title" id="modal-parcelle-name">Modifier</div>
+    <div class="modal-grid">
+      <div class="field-group">
+        <label>Date</label>
+        <input type="date" id="modal-date">
+      </div>
+      <div class="field-group">
+        <label>Qté / ha</label>
+        <div class="qty-wrapper">
+          <input type="number" id="modal-qty" min="1" step="1" style="width:80px">
+          <div class="qty-unit">kg/ha</div>
+        </div>
+      </div>
+      <div class="field-group" style="grid-column:1/-1">
+        <label>Référence engrais</label>
+        <input type="text" id="modal-ref" placeholder="Référence…">
+      </div>
+    </div>
+    <label class="modal-done-row">
+      <input type="checkbox" id="modal-done">
+      <span>Marquer comme faite</span>
+    </label>
+    <div class="modal-actions">
+      <button class="modal-cancel" onclick="closeModal()">Annuler</button>
+      <button class="modal-save" onclick="saveEdit()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const PARCELLES = [
+  { nom: "40 Rangs meunier",       surface: 0.43, longueur: 100, rangs: 40  },
+  { nom: "6 rangs Malivas",        surface: 0.04, longueur: 80,  rangs: 6   },
+  { nom: "Asperges",               surface: 0.02, longueur: 50,  rangs: 5   },
+  { nom: "Catherine",              surface: 0.06, longueur: 40,  rangs: 14  },
+  { nom: "Chauffours Chardonnay",  surface: 0.35, longueur: 140, rangs: 140 },
+  { nom: "Chauffours Meuniers",    surface: 0.53, longueur: 140, rangs: 140 },
+  { nom: "Chauffours meuniers Gr", surface: 0.36, longueur: 140, rangs: 140 },
+  { nom: "Le Barré",               surface: 0.31, longueur: 150, rangs: 21  },
+  { nom: "Le rez",                 surface: 0.06, longueur: 40,  rangs: 15  },
+  { nom: "les 7 Rangs",            surface: 0.07, longueur: 100, rangs: 7   },
+  { nom: "Les Hayes",              surface: 0.39, longueur: 50,  rangs: 80  },
+  { nom: "Les Petits Pinots",      surface: 0.11, longueur: 60,  rangs: 15  },
+  { nom: "Les Russiaux",           surface: 0.23, longueur: 100, rangs: 11  },
+  { nom: "Malivas Chardonnay",     surface: 0.26, longueur: 140, rangs: 17  },
+  { nom: "Malivas Pinot",          surface: 0.15, longueur: 140, rangs: 11  },
+  { nom: "montagne de Reims",      surface: 0.21, longueur: 90,  rangs: 20  },
+  { nom: "Pelles à Fours",         surface: 0.23, longueur: 130, rangs: 15  },
+  { nom: "Poncelet",               surface: 0.26, longueur: 130, rangs: 21  },
+];
+
+const SAC_KG = 25;
+let history = [];
+
+// ─── STORAGE (sessionStorage = dure tant que l'onglet est ouvert) ───
+function loadState() {
+  try {
+    const h = sessionStorage.getItem('vicon_history');
+    if (h) history = JSON.parse(h);
+    const ref = sessionStorage.getItem('vicon_ref');
+    if (ref) document.getElementById('field-ref').value = ref;
+  } catch(e) {}
+}
+
+function saveState() {
+  try { sessionStorage.setItem('vicon_history', JSON.stringify(history)); } catch(e) {}
+}
+
+// ─── TABS ───
+function switchTab(id, btn) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  btn.classList.add('active');
+  if (id === 'historique') renderHistory();
+}
+
+// ─── SELECT ───
+const sel = document.getElementById('parcelle-select');
+PARCELLES.forEach((p, i) => {
+  const opt = document.createElement('option');
+  opt.value = i;
+  opt.textContent = p.nom;
+  sel.appendChild(opt);
+});
+
+document.getElementById('field-date').valueAsDate = new Date();
+
+function fmt(val, dec = 2) {
+  return parseFloat(val.toFixed(dec)).toLocaleString('fr-FR');
+}
+
+function onRefChange() {
+  try { sessionStorage.setItem('vicon_ref', document.getElementById('field-ref').value); } catch(e) {}
+  updateRefDisplay();
+}
+
+function updateRefDisplay() {
+  const ref = document.getElementById('field-ref').value.trim();
+  document.getElementById('rc-ref-display').textContent = ref || '—';
+}
+
+// ─── MISE À JOUR FICHE ───
+function update() {
+  const idx = sel.value;
+  const qtyHa = parseFloat(document.getElementById('qty-ha').value) || 1000;
+  const recap    = document.getElementById('recap');
+  const empty    = document.getElementById('empty-state');
+  const printBtn = document.getElementById('print-btn');
+
+  if (idx === '') {
+    recap.classList.remove('visible');
+    empty.style.display = 'block';
+    printBtn.style.display = 'none';
+    return;
+  }
+
+  const p = PARCELLES[parseInt(idx)];
+
+  const kg9      = (p.longueur / 10) * 9  * (qtyHa / 1000);
+  const kg11     = (p.longueur / 10) * 11 * (qtyHa / 1000);
+  const sac9     = kg9  / SAC_KG;
+  const sac11    = kg11 / SAC_KG;
+  const total    = p.surface * qtyHa;
+  const totalSac = total / SAC_KG;
+
+  document.getElementById('rc-nom').textContent     = p.nom;
+  document.getElementById('rc-longueur').innerHTML  = `${p.longueur}<em>m</em>`;
+  document.getElementById('rc-rangs').textContent   = p.rangs;
+  document.getElementById('rc-surface').innerHTML   = `${p.surface}<em>ha</em>`;
+
+  document.getElementById('d9-kg').textContent   = fmt(kg9)   + ' kg';
+  document.getElementById('d9-sac').textContent  = fmt(sac9)  + ' sac';
+  document.getElementById('d11-kg').textContent  = fmt(kg11)  + ' kg';
+  document.getElementById('d11-sac').textContent = fmt(sac11) + ' sac';
+
+  document.getElementById('rc-total').innerHTML     = `${fmt(total, 0)}<span>kg</span>`;
+  document.getElementById('rc-total-sac').innerHTML = `${fmt(totalSac, 1)}<span>sacs</span>`;
+
+  updateRefDisplay();
+
+  // Reset état "faite"
+  document.getElementById('done-check').checked = false;
+  recap.classList.remove('done-state');
+
+  recap.classList.add('visible');
+  empty.style.display = 'none';
+  printBtn.style.display = 'block';
+}
+
+function toggleDone() {
+  const checked = document.getElementById('done-check').checked;
+  document.getElementById('recap').classList.toggle('done-state', checked);
+}
+
+// ─── ENREGISTRER ───
+function saveToHistory() {
+  const idx = sel.value;
+  if (idx === '') return;
+
+  const qtyHa = parseFloat(document.getElementById('qty-ha').value) || 1000;
+  const p = PARCELLES[parseInt(idx)];
+  const total    = p.surface * qtyHa;
+  const totalSac = total / SAC_KG;
+
+  history.unshift({
+    id:       Date.now(),
+    nom:      p.nom,
+    surface:  p.surface,
+    longueur: p.longueur,
+    rangs:    p.rangs,
+    qtyHa,
+    total,
+    totalSac,
+    done:     document.getElementById('done-check').checked,
+    date:     document.getElementById('field-date').value,
+    ref:      document.getElementById('field-ref').value.trim(),
+  });
+
+  saveState();
+  updateHistoBadge();
+
+  const btn = document.getElementById('validate-btn');
+  btn.textContent = '✓ Enregistré !';
+  btn.classList.add('validated');
+  setTimeout(() => {
+    btn.textContent = '＋ Enregistrer dans l\'historique';
+    btn.classList.remove('validated');
+  }, 1800);
+}
+
+// ─── BADGE ───
+function updateHistoBadge() {
+  const n = history.length;
+  document.getElementById('histo-count-badge').textContent = n ? `(${n})` : '';
+}
+
+// ─── RENDER HISTORIQUE ───
+function renderHistory() {
+  const list  = document.getElementById('histo-list');
+  const empty = document.getElementById('histo-empty');
+  const wrap  = document.getElementById('progress-wrap');
+
+  if (history.length === 0) {
+    list.innerHTML = '';
+    empty.style.display = 'block';
+    wrap.style.display = 'none';
+    return;
+  }
+
+  empty.style.display = 'none';
+  wrap.style.display = 'block';
+
+  // Avancement : parcelles uniques marquées "faite"
+  const doneParcelles = new Set(history.filter(e => e.done).map(e => e.nom));
+  const pct = Math.round((doneParcelles.size / PARCELLES.length) * 100);
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-text').textContent =
+    `${doneParcelles.size} / ${PARCELLES.length} parcelles faites (${pct}%)`;
+
+  list.innerHTML = history.map((e) => `
+    <div class="histo-item ${e.done ? 'done-item' : ''}">
+      <div>
+        <div class="histo-item-name">${e.nom}</div>
+        <div class="histo-item-detail">
+          ${e.date ? '<strong>' + e.date + '</strong> — ' : ''}${e.surface} ha · ${e.longueur}m · ${e.rangs} rangs · ${e.qtyHa} kg/ha<br>
+          Total : <strong style="color:var(--accent)">${fmt(e.total, 0)} kg</strong>
+          &nbsp;·&nbsp; <strong style="color:var(--sac-color)">${fmt(e.totalSac, 1)} sacs</strong>
+          ${e.ref ? '&nbsp;·&nbsp; <span style="color:var(--accent-dim)">' + e.ref + '</span>' : ''}
+        </div>
+      </div>
+      <div class="histo-item-right">
+        <span class="histo-status ${e.done ? 'done' : 'pending'}">${e.done ? '✓ Faite' : 'En attente'}</span>
+        <div style="display:flex;gap:6px;margin-top:4px">
+          <button class="histo-edit" data-id="${e.id}" onclick="openEdit(${e.id})">✎ Modifier</button>
+          <button class="histo-del"  data-id="${e.id}" onclick="deleteEntry(${e.id})">✕</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+let editingId = null;
+
+function openEdit(id) {
+  const e = history.find(h => h.id === id);
+  if (!e) return;
+  editingId = id;
+  document.getElementById('modal-parcelle-name').textContent = e.nom;
+  document.getElementById('modal-date').value  = e.date || '';
+  document.getElementById('modal-qty').value   = e.qtyHa;
+  document.getElementById('modal-ref').value   = e.ref || '';
+  document.getElementById('modal-done').checked = !!e.done;
+  document.getElementById('edit-modal').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('edit-modal').classList.remove('open');
+  editingId = null;
+}
+
+function saveEdit() {
+  if (editingId === null) return;
+  const idx = history.findIndex(h => h.id === editingId);
+  if (idx === -1) return;
+
+  const e = history[idx];
+  const qtyHa   = parseFloat(document.getElementById('modal-qty').value) || e.qtyHa;
+  const total    = e.surface * qtyHa;
+  const totalSac = total / SAC_KG;
+
+  history[idx] = {
+    ...e,
+    date:     document.getElementById('modal-date').value,
+    qtyHa,
+    total,
+    totalSac,
+    ref:      document.getElementById('modal-ref').value.trim(),
+    done:     document.getElementById('modal-done').checked,
+  };
+
+  saveState();
+  updateHistoBadge();
+  closeModal();
+  renderHistory();
+}
+
+function deleteEntry(id) {
+  const idx = history.findIndex(h => h.id === id);
+  if (idx === -1) return;
+  history.splice(idx, 1);
+  saveState();
+  updateHistoBadge();
+  renderHistory();
+}
+
+function clearHistory() {
+  history = [];
+  saveState();
+  updateHistoBadge();
+  renderHistory();
+}
+
+// ─── INIT ───
+sel.addEventListener('change', update);
+document.getElementById('qty-ha').addEventListener('input', update);
+
+loadState();
+updateHistoBadge();
+updateRefDisplay();
+</script>
+</body>
+</html>
