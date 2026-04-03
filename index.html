@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -701,10 +702,36 @@
   }
 
   @media print {
-    header, .tabs, .global-bar, .parcelle-row, .validate-btn, .print-btn { display: none !important; }
-    body { background: white; color: black; }
-    .card-header { background: #f5f5f5 !important; }
+    header, .tabs, .global-bar, .parcelle-row, .validate-btn, .print-btn,
+    .histo-header button, .modal-overlay,
+    .histo-edit, .histo-del, #edit-modal { display: none !important; }
+    body { background: white; color: #1a1a1a; font-size: 11pt; }
+    main { padding: 0; max-width: 100%; }
+    .tab-content { display: none !important; }
+    .tab-content.print-active { display: block !important; }
+    .card-header { background: #f0f0f0 !important; }
     .recap-card { border: 1px solid #ccc; }
+    .histo-item { border: 1px solid #ccc; border-radius: 0; background: white; }
+    .histo-item.done-item { background: #f0fff4; border-color: #4aaa6a; }
+    .histo-item-name { color: #1a1a1a; }
+    .histo-item-detail { color: #444; }
+    .histo-status.done { background: #4aaa6a; color: white; }
+    .histo-status.pending { background: #eee; color: #666; }
+    .progress-bar-wrap { border: 1px solid #ccc; background: #fafafa; }
+    .progress-bar-fill { background: #4aaa6a; }
+    .progress-bar-label { color: #444; }
+    .histo-title { color: #1a1a1a; }
+    .print-header-info { display: block !important; }
+  }
+
+  .print-header-info {
+    display: none;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    color: #666;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #ccc;
   }
 </style>
 </head>
@@ -858,7 +885,9 @@
 
     <div class="histo-header">
       <div class="histo-title">Historique</div>
-      <button class="clear-btn" onclick="clearHistory()">Tout effacer</button>
+      <div style="display:flex;gap:10px;align-items:center">
+        <button class="print-btn" style="margin-top:0;width:auto;padding:8px 16px" onclick="printHistory()">&#8595; Imprimer / Exporter</button>
+        <button class="clear-btn" onclick="clearHistory()">Tout effacer</button>
     </div>
 
     <div class="progress-bar-wrap" id="progress-wrap" style="display:none">
@@ -871,6 +900,7 @@
       </div>
     </div>
 
+    <div class="print-header-info" id="print-header-info"></div>
     <div id="histo-list" class="histo-list"></div>
     <div class="histo-empty" id="histo-empty">
       <div class="empty-icon">📋</div>
@@ -1185,6 +1215,25 @@ function clearHistory() {
   saveState();
   updateHistoBadge();
   renderHistory();
+}
+
+// ─── PRINT HISTORY ───
+function printHistory() {
+  // Fill print header info
+  const total = history.length;
+  const done  = new Set(history.filter(e => e.done).map(e => e.nom)).size;
+  const ref   = document.getElementById('field-ref').value.trim();
+  const today = new Date().toLocaleDateString('fr-FR');
+  document.getElementById('print-header-info').innerHTML =
+    `SCEV Champagne &nbsp;·&nbsp; Commune Charly &nbsp;·&nbsp; Imprimé le ${today}` +
+    (ref ? ` &nbsp;·&nbsp; Réf. engrais : <strong>${ref}</strong>` : '') +
+    ` &nbsp;·&nbsp; ${done}/${PARCELLES.length} parcelles faites`;
+
+  // Mark historique tab as print-active, hide saisie
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('print-active'));
+  document.getElementById('tab-historique').classList.add('print-active');
+
+  window.print();
 }
 
 // ─── INIT ───
