@@ -445,9 +445,11 @@
   /* ── HISTORIQUE ── */
   .histo-header {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
     margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 12px;
   }
 
   .histo-title {
@@ -482,43 +484,105 @@
     letter-spacing: 0.2em;
   }
 
-  .histo-list { display: flex; flex-direction: column; gap: 10px; }
+  .histo-list { display: flex; flex-direction: column; gap: 12px; }
 
   .histo-item {
     background: var(--card);
     border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 16px 20px;
-    display: grid;
-    grid-template-columns: 1fr auto;
-    gap: 12px;
-    align-items: center;
+    border-radius: 10px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
     animation: fadeIn 0.2s ease;
   }
 
   .histo-item.done-item { border-color: var(--done); background: var(--done-bg); }
 
+  .histo-item-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px 10px;
+    gap: 10px;
+  }
+
   .histo-item-name {
     font-family: 'Bebas Neue', sans-serif;
-    font-size: 1.3rem;
+    font-size: 1.4rem;
     letter-spacing: 0.06em;
+    color: var(--text);
+    line-height: 1;
+  }
+
+  .histo-item-date {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    margin-top: 3px;
+  }
+
+  .histo-item-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .histo-stat {
+    padding: 10px 14px;
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .histo-stat:last-child { border-right: none; }
+
+  .histo-stat-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.55rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+
+  .histo-stat-value {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.95rem;
     color: var(--text);
   }
 
-  .histo-item-detail {
+  .histo-stat-value.accent { color: var(--accent); }
+  .histo-stat-value.sac    { color: var(--sac-color); }
+
+  .histo-item-meta {
+    padding: 8px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .histo-item-ref {
     font-family: 'DM Mono', monospace;
-    font-size: 0.68rem;
-    color: var(--text-muted);
-    margin-top: 4px;
-    line-height: 1.8;
+    font-size: 0.65rem;
+    color: var(--accent-dim);
+    letter-spacing: 0.1em;
+  }
+
+  .histo-item-actions {
+    display: flex;
+    gap: 6px;
+    align-items: center;
   }
 
   .histo-item-right {
-    text-align: right;
     display: flex;
     flex-direction: column;
     align-items: flex-end;
-    gap: 6px;
+    gap: 4px;
+    flex-shrink: 0;
   }
 
   .histo-status {
@@ -700,6 +764,28 @@
     transition: width 0.4s ease;
   }
 
+  /* ── RESPONSIVE MOBILE ── */
+  @media (max-width: 600px) {
+    header { padding: 14px 16px; }
+    .logo { font-size: 1.5rem; }
+    .header-meta { font-size: 0.6rem; }
+    .tabs { padding: 0 16px; }
+    main { padding: 20px 14px 60px; }
+    .global-bar { grid-template-columns: 1fr; gap: 12px; }
+    .qty-wrapper input { width: 80px; }
+    .histo-header { flex-direction: column; align-items: flex-start; }
+    .histo-item-stats { grid-template-columns: repeat(3,1fr); }
+    .descentes-grid { grid-template-columns: 1fr; }
+    .info-grid { grid-template-columns: 1fr; }
+    .info-cell:nth-child(2n) { border-right: 1px solid var(--border); }
+    .total-section { grid-template-columns: 1fr; }
+    .total-cell:first-child { border-right: none; border-bottom: 1px solid var(--border); padding-right: 0; padding-bottom: 16px; margin-bottom: 4px; }
+    .total-cell:last-child { padding-left: 0; padding-top: 12px; }
+    .footer-fields { grid-template-columns: 1fr; }
+    .modal { width: 95%; padding: 20px 16px; }
+    .modal-grid { grid-template-columns: 1fr; }
+  }
+
   @media print {
     header, .tabs, .global-bar, .parcelle-row, .validate-btn, .print-btn,
     .histo-header button, .modal-overlay,
@@ -710,10 +796,17 @@
     .tab-content.print-active { display: block !important; }
     .card-header { background: #f0f0f0 !important; }
     .recap-card { border: 1px solid #ccc; }
-    .histo-item { border: 1px solid #ccc; border-radius: 0; background: white; }
+    .histo-item { border: 1px solid #ccc; background: white; page-break-inside: avoid; }
     .histo-item.done-item { background: #f0fff4; border-color: #4aaa6a; }
     .histo-item-name { color: #1a1a1a; }
-    .histo-item-detail { color: #444; }
+    .histo-item-stats { border-top: 1px solid #ddd; border-bottom: 1px solid #ddd; }
+    .histo-stat { border-right: 1px solid #ddd; }
+    .histo-stat-label { color: #888; }
+    .histo-stat-value { color: #1a1a1a; }
+    .histo-stat-value.accent { color: #3a7a10; }
+    .histo-stat-value.sac { color: #a07020; }
+    .histo-item-ref { color: #555; }
+    .histo-item-actions { display: none !important; }
     .histo-status.done { background: #4aaa6a; color: white; }
     .histo-status.pending { background: #eee; color: #666; }
     .progress-bar-wrap { border: 1px solid #ccc; background: #fafafa; }
@@ -883,9 +976,11 @@
   <div class="tab-content" id="tab-historique">
 
     <div class="histo-header">
-      <div class="histo-title">Historique</div>
+      <div style="display:flex;align-items:baseline;gap:12px"><div class="histo-title">Historique</div><div id="storage-badge" style="font-family:'DM Mono',monospace;font-size:0.62rem;letter-spacing:0.15em;color:var(--accent-dim);text-transform:uppercase">💾 Sauvegarde locale active</div></div>
       <div style="display:flex;gap:10px;align-items:center">
-        <button class="print-btn" style="margin-top:0;width:auto;padding:8px 16px" onclick="printHistory()">&#8595; Imprimer / Exporter</button>
+        <button class="print-btn" style="margin-top:0;width:auto;padding:8px 16px" onclick="printHistory()">&#8595; Imprimer</button>
+        <button class="histo-edit" style="padding:8px 14px" onclick="exportJSON()">&#8595; Exporter JSON</button>
+        <label class="histo-edit" style="padding:8px 14px;cursor:pointer" title="Importer un fichier JSON">&#8593; Importer JSON<input type="file" id="import-file" accept=".json" style="display:none" onchange="importJSON(event)"></label>
         <button class="clear-btn" onclick="clearHistory()">Tout effacer</button>
     </div>
 
@@ -970,15 +1065,15 @@ let history = [];
 // ─── STORAGE (sessionStorage = dure tant que l'onglet est ouvert) ───
 function loadState() {
   try {
-    const h = sessionStorage.getItem('vicon_history');
+    const h = localStorage.getItem('vicon_history');
     if (h) history = JSON.parse(h);
-    const ref = sessionStorage.getItem('vicon_ref');
+    const ref = localStorage.getItem('vicon_ref');
     if (ref) document.getElementById('field-ref').value = ref;
   } catch(e) {}
 }
 
 function saveState() {
-  try { sessionStorage.setItem('vicon_history', JSON.stringify(history)); } catch(e) {}
+  try { localStorage.setItem('vicon_history', JSON.stringify(history)); } catch(e) {}
 }
 
 // ─── TABS ───
@@ -1006,7 +1101,7 @@ function fmt(val, dec = 2) {
 }
 
 function onRefChange() {
-  try { sessionStorage.setItem('vicon_ref', document.getElementById('field-ref').value); } catch(e) {}
+  try { localStorage.setItem('vicon_ref', document.getElementById('field-ref').value); } catch(e) {}
   updateRefDisplay();
 }
 
@@ -1094,6 +1189,7 @@ function saveToHistory() {
 
   saveState();
   updateHistoBadge();
+  showToast('✓ Enregistré dans l\'historique');
 
   const btn = document.getElementById('validate-btn');
   btn.textContent = '✓ Enregistré !';
@@ -1135,22 +1231,40 @@ function renderHistory() {
 
   list.innerHTML = history.map((e) => `
     <div class="histo-item ${e.done ? 'done-item' : ''}">
-      <div>
-        <div class="histo-item-name">${e.nom}</div>
-        <div class="histo-item-detail">
-          ${e.date ? '<strong>' + e.date + '</strong> — ' : ''}${e.surface} ha · ${e.longueur}m · ${e.rangs} rangs · ${e.qtyHa} kg/ha<br>
-          Total : <strong style="color:var(--accent)">${fmt(e.total, 0)} kg</strong>
-          &nbsp;·&nbsp; <strong style="color:var(--sac-color)">${fmt(e.totalSac, 1)} sacs</strong>
-          ${e.ref ? '&nbsp;·&nbsp; <span style="color:var(--accent-dim)">' + e.ref + '</span>' : ''}
+
+      <div class="histo-item-top">
+        <div>
+          <div class="histo-item-name">${e.nom}</div>
+                    ${e.date ? `<div class="histo-item-date">${e.date}</div>` : ""}
+        </div>
+        <div class="histo-item-right">
+          <span class="histo-status ${e.done ? 'done' : 'pending'}">${e.done ? '✓ Faite' : 'En attente'}</span>
         </div>
       </div>
-      <div class="histo-item-right">
-        <span class="histo-status ${e.done ? 'done' : 'pending'}">${e.done ? '✓ Faite' : 'En attente'}</span>
-        <div style="display:flex;gap:6px;margin-top:4px">
-          <button class="histo-edit" data-id="${e.id}" onclick="openEdit(${e.id})">✎ Modifier</button>
-          <button class="histo-del"  data-id="${e.id}" onclick="deleteEntry(${e.id})">✕</button>
+
+      <div class="histo-item-stats">
+        <div class="histo-stat">
+          <div class="histo-stat-label">Total</div>
+          <div class="histo-stat-value accent">${fmt(e.total, 0)} kg</div>
+        </div>
+        <div class="histo-stat">
+          <div class="histo-stat-label">Sacs</div>
+          <div class="histo-stat-value sac">${fmt(e.totalSac, 1)}</div>
+        </div>
+        <div class="histo-stat">
+          <div class="histo-stat-label">Qté/ha</div>
+          <div class="histo-stat-value">${e.qtyHa} kg</div>
         </div>
       </div>
+
+      <div class="histo-item-meta">
+        <div class="histo-item-ref">${e.ref ? '📦 ' + e.ref : '<span style="color:var(--text-dim)">— sans réf.</span>'}</div>
+        <div class="histo-item-actions">
+          <button class="histo-edit" onclick="openEdit(${e.id})">✎ Modifier</button>
+          <button class="histo-del"  onclick="deleteEntry(${e.id})">✕</button>
+        </div>
+      </div>
+
     </div>
   `).join('');
 }
@@ -1214,6 +1328,258 @@ function clearHistory() {
   saveState();
   updateHistoBadge();
   renderHistory();
+}
+
+// ─── EXPORT / IMPORT JSON ───
+function exportJSON() {
+  const data = {
+    version: 1,
+    exportDate: new Date().toISOString(),
+    ref: document.getElementById('field-ref').value.trim(),
+    history
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = 'vicon_historique_' + new Date().toISOString().slice(0,10) + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importJSON(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (data.history && Array.isArray(data.history)) {
+        // Merge : add entries whose id doesn't already exist
+        const existingIds = new Set(history.map(h => h.id));
+        const newEntries  = data.history.filter(h => !existingIds.has(h.id));
+        history = [...newEntries, ...history];
+        saveState();
+        updateHistoBadge();
+        renderHistory();
+        showToast('✓ ' + newEntries.length + ' entrée(s) importée(s)');
+      }
+      if (data.ref && !document.getElementById('field-ref').value.trim()) {
+        document.getElementById('field-ref').value = data.ref;
+        localStorage.setItem('vicon_ref', data.ref);
+        updateRefDisplay();
+      }
+    } catch(err) {
+      showToast('Fichier invalide');
+    }
+    // Reset input so same file can be re-imported
+    event.target.value = '';
+  };
+  reader.readAsText(file);
+}
+
+function showToast(msg) {
+  let t = document.getElementById('toast');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'toast';
+    t.style.cssText = 'position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:var(--accent);color:var(--bg);font-family:"DM Mono",monospace;font-size:0.8rem;letter-spacing:0.15em;padding:10px 22px;border-radius:30px;z-index:999;transition:opacity 0.4s;pointer-events:none';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.style.opacity = '1';
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.style.opacity = '0', 2500);
+}
+
+// ─── PRINT HISTORY ───
+function printHistory() {
+  // Fill print header info
+  const total = history.length;
+  const done  = new Set(history.filter(e => e.done).map(e => e.nom)).size;
+  const ref   = document.getElementById('field-ref').value.trim();
+  const today = new Date().toLocaleDateString('fr-FR');
+  document.getElementById('print-header-info').innerHTML =
+    `SCEV Champagne &nbsp;·&nbsp; Commune Charly &nbsp;·&nbsp; Imprimé le ${today}` +
+    (ref ? ` &nbsp;·&nbsp; Réf. engrais : <strong>${ref}</strong>` : '') +
+    ` &nbsp;·&nbsp; ${done}/${PARCELLES.length} parcelles faites`;
+
+  // Mark historique tab as print-active, hide saisie
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('print-active'));
+  document.getElementById('tab-historique').classList.add('print-active');
+
+  window.print();
+}
+
+// ─── INIT ───
+sel.addEventListener('change', update);
+document.getElementById('qty-ha').addEventListener('input', update);
+
+loadState();
+updateHistoBadge();
+updateRefDisplay();
+</script>
+</body>
+</html>${e.date ? `<div class="histo-item-date">${e.date}</div>` : ""}">
+
+      <div class="histo-item-top">
+        <div>
+          <div class="histo-item-name">${e.nom}</div>
+          ${e.date ? '<div style="font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--text-muted);margin-top:3px">' + e.date + '</div>' : ''}
+        </div>
+        <div class="histo-item-right">
+          <span class="histo-status ${e.done ? 'done' : 'pending'}">${e.done ? '✓ Faite' : 'En attente'}</span>
+        </div>
+      </div>
+
+      <div class="histo-item-stats">
+        <div class="histo-stat">
+          <div class="histo-stat-label">Total</div>
+          <div class="histo-stat-value accent">${fmt(e.total, 0)} kg</div>
+        </div>
+        <div class="histo-stat">
+          <div class="histo-stat-label">Sacs</div>
+          <div class="histo-stat-value sac">${fmt(e.totalSac, 1)}</div>
+        </div>
+        <div class="histo-stat">
+          <div class="histo-stat-label">Qté/ha</div>
+          <div class="histo-stat-value">${e.qtyHa} kg</div>
+        </div>
+      </div>
+
+      <div class="histo-item-meta">
+        <div class="histo-item-ref">${e.ref ? '📦 ' + e.ref : '<span style="color:var(--text-dim)">— sans réf.</span>'}</div>
+        <div class="histo-item-actions">
+          <button class="histo-edit" onclick="openEdit(${e.id})">✎ Modifier</button>
+          <button class="histo-del"  onclick="deleteEntry(${e.id})">✕</button>
+        </div>
+      </div>
+
+    </div>
+  `).join('');
+}
+
+let editingId = null;
+
+function openEdit(id) {
+  const e = history.find(h => h.id === id);
+  if (!e) return;
+  editingId = id;
+  document.getElementById('modal-parcelle-name').textContent = e.nom;
+  document.getElementById('modal-date').value  = e.date || '';
+  document.getElementById('modal-qty').value   = e.qtyHa;
+  document.getElementById('modal-ref').value   = e.ref || '';
+  document.getElementById('modal-done').checked = !!e.done;
+  document.getElementById('edit-modal').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('edit-modal').classList.remove('open');
+  editingId = null;
+}
+
+function saveEdit() {
+  if (editingId === null) return;
+  const idx = history.findIndex(h => h.id === editingId);
+  if (idx === -1) return;
+
+  const e = history[idx];
+  const qtyHa   = parseFloat(document.getElementById('modal-qty').value) || e.qtyHa;
+  const total    = e.surface * qtyHa;
+  const totalSac = total / SAC_KG;
+
+  history[idx] = {
+    ...e,
+    date:     document.getElementById('modal-date').value,
+    qtyHa,
+    total,
+    totalSac,
+    ref:      document.getElementById('modal-ref').value.trim(),
+    done:     document.getElementById('modal-done').checked,
+  };
+
+  saveState();
+  updateHistoBadge();
+  closeModal();
+  renderHistory();
+}
+
+function deleteEntry(id) {
+  const idx = history.findIndex(h => h.id === id);
+  if (idx === -1) return;
+  history.splice(idx, 1);
+  saveState();
+  updateHistoBadge();
+  renderHistory();
+}
+
+function clearHistory() {
+  history = [];
+  saveState();
+  updateHistoBadge();
+  renderHistory();
+}
+
+// ─── EXPORT / IMPORT JSON ───
+function exportJSON() {
+  const data = {
+    version: 1,
+    exportDate: new Date().toISOString(),
+    ref: document.getElementById('field-ref').value.trim(),
+    history
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = 'vicon_historique_' + new Date().toISOString().slice(0,10) + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importJSON(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (data.history && Array.isArray(data.history)) {
+        // Merge : add entries whose id doesn't already exist
+        const existingIds = new Set(history.map(h => h.id));
+        const newEntries  = data.history.filter(h => !existingIds.has(h.id));
+        history = [...newEntries, ...history];
+        saveState();
+        updateHistoBadge();
+        renderHistory();
+        showToast('✓ ' + newEntries.length + ' entrée(s) importée(s)');
+      }
+      if (data.ref && !document.getElementById('field-ref').value.trim()) {
+        document.getElementById('field-ref').value = data.ref;
+        localStorage.setItem('vicon_ref', data.ref);
+        updateRefDisplay();
+      }
+    } catch(err) {
+      showToast('Fichier invalide');
+    }
+    // Reset input so same file can be re-imported
+    event.target.value = '';
+  };
+  reader.readAsText(file);
+}
+
+function showToast(msg) {
+  let t = document.getElementById('toast');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'toast';
+    t.style.cssText = 'position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:var(--accent);color:var(--bg);font-family:"DM Mono",monospace;font-size:0.8rem;letter-spacing:0.15em;padding:10px 22px;border-radius:30px;z-index:999;transition:opacity 0.4s;pointer-events:none';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.style.opacity = '1';
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.style.opacity = '0', 2500);
 }
 
 // ─── PRINT HISTORY ───
