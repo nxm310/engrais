@@ -4,1152 +4,561 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>VICON — Gestion Engrais</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
   :root {
-    --blue-deep: #0a1628;
-    --blue-dark: #0d2147;
-    --blue-mid: #1a3a6e;
-    --blue-bright: #1d6ef5;
-    --blue-sky: #3b9bff;
-    --blue-light: #d0e8ff;
-    --blue-pale: #eaf4ff;
-    --accent-teal: #00d4aa;
-    --accent-amber: #f5a623;
-    --accent-red: #ff4757;
-    --accent-green: #2ed573;
-    --white: #ffffff;
-    --gray-100: #f0f4f8;
-    --gray-200: #dce6f0;
-    --gray-500: #7a8fa6;
-    --gray-700: #3d5068;
-    --shadow-sm: 0 2px 8px rgba(10,22,40,0.08);
-    --shadow-md: 0 4px 20px rgba(10,22,40,0.12);
-    --shadow-lg: 0 8px 40px rgba(10,22,40,0.18);
-    --radius: 16px;
-    --radius-sm: 10px;
+    --bg0: #080d18;
+    --bg1: #0d1526;
+    --bg2: #111d33;
+    --bg3: #162040;
+    --bg4: #1c2a4e;
+    --bdr: rgba(56,122,246,0.14);
+    --bdr2: rgba(56,122,246,0.3);
+    --blue: #3b7af6;
+    --blueb: #6ba3ff;
+    --blueg: rgba(59,122,246,0.3);
+    --teal: #0fc6b4;
+    --green: #22c55e;
+    --greend: rgba(34,197,94,0.1);
+    --amber: #f5a623;
+    --amberd: rgba(245,166,35,0.12);
+    --red: #f04747;
+    --redd: rgba(240,71,71,0.1);
+    --t1: #e8edf8;
+    --t2: #8fa3c0;
+    --t3: #566a87;
+    --r: 13px;
+    --rs: 8px;
   }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'DM Sans',sans-serif;background:var(--bg0);color:var(--t1);min-height:100vh}
+  ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:var(--bg1)}::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:3px}
 
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+  /* HEADER */
+  header{background:var(--bg1);border-bottom:1px solid var(--bdr);position:sticky;top:0;z-index:200}
+  .hi{max-width:1060px;margin:0 auto;padding:0 22px;height:58px;display:flex;align-items:center;justify-content:space-between}
+  .logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.2rem;display:flex;align-items:center;gap:9px}
+  .lchip{background:var(--blue);color:#fff;font-size:.62rem;font-weight:700;letter-spacing:1px;padding:2px 7px;border-radius:5px;text-transform:uppercase}
+  nav{display:flex;gap:3px}
+  .nb{background:none;border:none;color:var(--t3);font-family:'DM Sans',sans-serif;font-size:.86rem;font-weight:500;padding:7px 15px;border-radius:7px;cursor:pointer;transition:all .2s}
+  .nb:hover{color:var(--t1);background:var(--bg2)}
+  .nb.on{color:var(--blueb);background:rgba(59,122,246,.12)}
 
-  body {
-    font-family: 'DM Sans', sans-serif;
-    background: var(--blue-pale);
-    color: var(--blue-deep);
-    min-height: 100vh;
-  }
+  /* CAMPAGNE BAR */
+  .cbar{background:var(--bg1);border-bottom:1px solid var(--bdr)}
+  .cinn{max-width:1060px;margin:0 auto;padding:13px 22px;display:flex;align-items:flex-end;gap:18px;flex-wrap:wrap}
+  .clbl{font-family:'Syne',sans-serif;font-weight:700;font-size:.75rem;color:var(--blueb);text-transform:uppercase;letter-spacing:1px;white-space:nowrap;padding-bottom:2px}
+  .cf{display:flex;flex-direction:column;gap:4px}
+  .cf label{font-size:.68rem;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.8px}
+  .cf input{background:var(--bg2);border:1.5px solid var(--bdr);border-radius:var(--rs);color:var(--t1);font-family:'DM Sans',sans-serif;font-size:.88rem;font-weight:500;padding:7px 12px;min-width:145px;transition:all .2s}
+  .cf input[type=number]{min-width:88px}
+  .cf input:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px var(--blueg)}
+  .cf input::placeholder{color:var(--t3)}
+  .sac-box{margin-left:auto;background:var(--bg3);border:1.5px solid var(--bdr2);border-radius:var(--rs);padding:8px 16px;display:flex;align-items:center;gap:14px;white-space:nowrap}
+  .sac-box-lbl{font-size:.76rem;color:var(--t3);font-weight:500;line-height:1.4}
+  .sac-box-val{font-family:'Syne',sans-serif;font-size:1.35rem;font-weight:800;color:var(--amber)}
 
-  /* ─── HEADER ─── */
-  header {
-    background: linear-gradient(135deg, var(--blue-deep) 0%, var(--blue-dark) 60%, #0f2d5e 100%);
-    color: white;
-    padding: 0 32px;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    box-shadow: var(--shadow-lg);
-  }
-  .header-inner {
-    max-width: 1100px;
-    margin: 0 auto;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    height: 64px;
-  }
-  .logo {
-    font-family: 'Syne', sans-serif;
-    font-weight: 800;
-    font-size: 1.4rem;
-    letter-spacing: -0.5px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  .logo-badge {
-    background: var(--blue-bright);
-    color: white;
-    padding: 2px 8px;
-    border-radius: 6px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    letter-spacing: 1px;
-  }
-  nav { display: flex; gap: 4px; }
-  .nav-btn {
-    background: none;
-    border: none;
-    color: rgba(255,255,255,0.6);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 0.9rem;
-    font-weight: 500;
-    padding: 8px 16px;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-  .nav-btn:hover { color: white; background: rgba(255,255,255,0.08); }
-  .nav-btn.active { color: white; background: rgba(29,110,245,0.4); }
+  /* MAIN */
+  main{max-width:1060px;margin:0 auto;padding:26px 22px}
+  .sec{display:none}.sec.on{display:block}
 
-  /* ─── MAIN ─── */
-  main {
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: 32px 24px;
-  }
+  /* PROGRESS */
+  .prog{display:flex;align-items:center;gap:13px;margin-bottom:22px;background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--rs);padding:13px 17px}
+  .pbo{flex:1;height:7px;background:var(--bg4);border-radius:7px;overflow:hidden}
+  .pbi{height:100%;background:linear-gradient(90deg,var(--blue),var(--teal));border-radius:7px;transition:width .5s ease}
+  .ptxt{font-size:.8rem;font-weight:600;color:var(--t2);white-space:nowrap}
 
-  /* ─── REFERENCE BANNER ─── */
-  .ref-banner {
-    background: linear-gradient(135deg, var(--blue-mid), var(--blue-bright));
-    border-radius: var(--radius);
-    padding: 20px 28px;
-    margin-bottom: 28px;
-    color: white;
-    box-shadow: var(--shadow-md);
-    display: flex;
-    align-items: center;
-    gap: 24px;
-    flex-wrap: wrap;
-  }
-  .ref-banner-label {
-    font-family: 'Syne', sans-serif;
-    font-weight: 700;
-    font-size: 1rem;
-    opacity: 0.9;
-    white-space: nowrap;
-  }
-  .ref-inputs {
-    display: flex;
-    gap: 16px;
-    flex: 1;
-    flex-wrap: wrap;
-    align-items: center;
-  }
-  .ref-field {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-  }
-  .ref-field label {
-    font-size: 0.72rem;
-    font-weight: 500;
-    opacity: 0.7;
-    text-transform: uppercase;
-    letter-spacing: 0.8px;
-  }
-  .ref-field input {
-    background: rgba(255,255,255,0.15);
-    border: 1.5px solid rgba(255,255,255,0.25);
-    border-radius: 8px;
-    color: white;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 0.95rem;
-    font-weight: 500;
-    padding: 8px 14px;
-    min-width: 160px;
-    transition: all 0.2s;
-  }
-  .ref-field input::placeholder { color: rgba(255,255,255,0.45); }
-  .ref-field input:focus { outline: none; border-color: white; background: rgba(255,255,255,0.2); }
-  .ref-field input[type=number] { min-width: 100px; }
+  /* SELECT */
+  .selrow{margin-bottom:20px}
+  .selrow label{display:block;font-size:.7rem;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px}
+  .selrow select{background:var(--bg2);border:1.5px solid var(--bdr);border-radius:var(--rs);color:var(--t1);font-family:'DM Sans',sans-serif;font-size:.95rem;font-weight:500;padding:10px 40px 10px 13px;max-width:400px;width:100%;cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236ba3ff' stroke-width='2.5'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;transition:all .2s}
+  .selrow select:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px var(--blueg)}
+  .selrow select option{background:var(--bg2)}
 
-  /* ─── PAGE SECTIONS ─── */
-  .section { display: none; }
-  .section.active { display: block; }
+  /* CARDS */
+  .cgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(285px,1fr));gap:14px;margin-bottom:14px}
+  .card{background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r);padding:18px;transition:border-color .2s}
+  .card:hover{border-color:var(--bdr2)}
+  .ctit{font-family:'Syne',sans-serif;font-weight:700;font-size:.74rem;text-transform:uppercase;letter-spacing:1px;color:var(--t3);margin-bottom:14px;display:flex;align-items:center;gap:6px}
+  .igrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .ilbl{font-size:.68rem;font-weight:500;color:var(--t3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:3px}
+  .ival{font-size:1rem;font-weight:600;color:var(--t1)}
 
-  /* ─── PARCELLE PAGE ─── */
-  .top-bar {
-    display: flex;
-    gap: 16px;
-    align-items: flex-end;
-    margin-bottom: 24px;
-    flex-wrap: wrap;
-  }
-  .select-wrap { flex: 1; min-width: 220px; }
-  .select-wrap label {
-    display: block;
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: var(--gray-500);
-    text-transform: uppercase;
-    letter-spacing: 0.8px;
-    margin-bottom: 6px;
-  }
-  .select-wrap select {
-    width: 100%;
-    background: white;
-    border: 2px solid var(--gray-200);
-    border-radius: var(--radius-sm);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 1rem;
-    font-weight: 500;
-    color: var(--blue-deep);
-    padding: 10px 14px;
-    cursor: pointer;
-    transition: all 0.2s;
-    appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%231d6ef5' stroke-width='2.5'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 12px center;
-    padding-right: 40px;
-  }
-  .select-wrap select:focus { outline: none; border-color: var(--blue-bright); box-shadow: 0 0 0 3px rgba(29,110,245,0.12); }
+  /* DESCENTE TABLE */
+  .dt{width:100%;border-collapse:collapse}
+  .dt th{background:var(--bg3);color:var(--t3);font-size:.68rem;font-weight:600;text-transform:uppercase;letter-spacing:.7px;padding:8px 9px;text-align:left}
+  .dt th:first-child{border-radius:6px 0 0 6px}.dt th:last-child{border-radius:0 6px 6px 0}
+  .dt td{padding:10px 9px;border-bottom:1px solid var(--bdr);font-weight:500;font-size:.88rem}
+  .dt tr:last-child td{border-bottom:none}
+  .chip{display:inline-flex;align-items:center;padding:3px 8px;border-radius:20px;font-size:.72rem;font-weight:600}
+  .cb{background:rgba(59,122,246,.14);color:var(--blueb)}
+  .ct{background:rgba(15,198,180,.12);color:var(--teal)}
 
-  /* ─── CARD GRID ─── */
-  .card-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 20px;
-    margin-bottom: 24px;
-  }
-  .card {
-    background: white;
-    border-radius: var(--radius);
-    padding: 24px;
-    box-shadow: var(--shadow-sm);
-    border: 1.5px solid var(--gray-200);
-    transition: box-shadow 0.2s;
-  }
-  .card:hover { box-shadow: var(--shadow-md); }
-  .card-title {
-    font-family: 'Syne', sans-serif;
-    font-weight: 700;
-    font-size: 0.85rem;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    color: var(--gray-500);
-    margin-bottom: 16px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .card-title span { font-size: 1rem; }
+  /* TOTAL STRIP */
+  .tstrip{background:linear-gradient(135deg,var(--bg3),var(--bg4));border:1px solid var(--bdr2);border-radius:var(--r);padding:18px 22px;display:flex;align-items:center;justify-content:space-around;gap:14px;flex-wrap:wrap;margin-bottom:14px;box-shadow:0 4px 24px rgba(0,0,0,.35)}
+  .titem{text-align:center}
+  .tval{font-family:'Syne',sans-serif;font-size:1.9rem;font-weight:800;color:var(--t1);line-height:1}
+  .tval.bl{color:var(--blueb)}.tval.am{color:var(--amber)}
+  .tlbl{font-size:.7rem;color:var(--t3);margin-top:3px;text-transform:uppercase;letter-spacing:.8px}
+  .tdiv{width:1px;height:42px;background:var(--bdr)}
 
-  /* ─── INFO GRID ─── */
-  .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  .info-item {}
-  .info-label { font-size: 0.72rem; font-weight: 500; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 2px; }
-  .info-value { font-size: 1.1rem; font-weight: 600; color: var(--blue-deep); }
+  /* SAC RÉEL */
+  .srcard{background:var(--bg2);border:1.5px solid var(--amberd);border-radius:var(--r);padding:16px 18px;margin-bottom:14px;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+  .srcard .ico{font-size:1.5rem;flex-shrink:0}
+  .srinfo{flex:1}
+  .srinfo h4{font-family:'Syne',sans-serif;font-weight:700;font-size:.84rem;color:var(--amber);margin-bottom:3px}
+  .srinfo p{font-size:.76rem;color:var(--t3)}
+  .srinput-wrap{display:flex;align-items:center;gap:9px}
+  .srinput-wrap label{font-size:.72rem;color:var(--t3);font-weight:500}
+  .srinput{background:var(--bg3);border:1.5px solid var(--bdr2);border-radius:var(--rs);color:var(--t1);font-family:'Syne',sans-serif;font-size:1.15rem;font-weight:700;padding:8px 12px;width:96px;text-align:center;transition:all .2s}
+  .srinput:focus{outline:none;border-color:var(--amber);box-shadow:0 0 0 3px var(--amberd)}
 
-  /* ─── DESCENTE TABLE ─── */
-  .descente-table { width: 100%; border-collapse: collapse; }
-  .descente-table th {
-    background: var(--blue-pale);
-    color: var(--blue-mid);
-    font-size: 0.75rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.6px;
-    padding: 10px 12px;
-    text-align: left;
-  }
-  .descente-table th:first-child { border-radius: 8px 0 0 8px; }
-  .descente-table th:last-child { border-radius: 0 8px 8px 0; }
-  .descente-table td {
-    padding: 12px 12px;
-    border-bottom: 1px solid var(--gray-100);
-    font-weight: 500;
-  }
-  .descente-table tr:last-child td { border-bottom: none; }
-  .badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    padding: 4px 10px;
-    border-radius: 20px;
-    font-size: 0.8rem;
-    font-weight: 600;
-  }
-  .badge-blue { background: var(--blue-pale); color: var(--blue-bright); }
-  .badge-teal { background: #e0faf5; color: #00a882; }
+  /* VALIDATE */
+  .vrow{background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r);padding:15px 18px;display:flex;align-items:center;gap:15px;flex-wrap:wrap}
+  .cbwrap{display:flex;align-items:center;gap:9px;cursor:pointer;flex:1}
+  .cbox{width:23px;height:23px;border:2px solid var(--bdr2);border-radius:6px;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0}
+  .cbox.on{background:var(--green);border-color:var(--green)}
+  .cbox svg{display:none}.cbox.on svg{display:block}
+  .cblbl{font-weight:500;font-size:.88rem;color:var(--t2)}
 
-  /* ─── TOTAL CARD ─── */
-  .total-card {
-    background: linear-gradient(135deg, var(--blue-dark), var(--blue-mid));
-    color: white;
-    border-radius: var(--radius);
-    padding: 24px 28px;
-    display: flex;
-    align-items: center;
-    justify-content: space-around;
-    gap: 24px;
-    flex-wrap: wrap;
-    box-shadow: var(--shadow-lg);
-    margin-bottom: 24px;
-  }
-  .total-stat { text-align: center; }
-  .total-stat-value {
-    font-family: 'Syne', sans-serif;
-    font-size: 2.2rem;
-    font-weight: 800;
-    color: white;
-    line-height: 1;
-  }
-  .total-stat-label { font-size: 0.78rem; opacity: 0.7; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.8px; }
-  .total-divider { width: 1px; height: 48px; background: rgba(255,255,255,0.2); }
+  /* BUTTONS */
+  .btn{border:none;border-radius:var(--rs);font-family:'DM Sans',sans-serif;font-weight:600;font-size:.85rem;cursor:pointer;padding:9px 17px;display:inline-flex;align-items:center;gap:7px;transition:all .2s}
+  .btn-p{background:var(--blue);color:#fff}
+  .btn-p:hover{background:#2a68e8;transform:translateY(-1px);box-shadow:0 4px 14px var(--blueg)}
+  .btn-t{background:var(--teal);color:#fff}
+  .btn-t:hover{background:#0da99a;transform:translateY(-1px)}
+  .btn-g{background:var(--bg3);color:var(--t2);border:1px solid var(--bdr)}
+  .btn-g:hover{color:var(--t1);border-color:var(--bdr2);background:var(--bg4)}
+  .btn-d{background:var(--redd);color:var(--red);border:1px solid rgba(240,71,71,.2)}
+  .btn-d:hover{background:var(--red);color:#fff}
+  .btn-sm{padding:5px 11px;font-size:.78rem}
 
-  /* ─── VALIDATE ZONE ─── */
-  .validate-zone {
-    background: white;
-    border-radius: var(--radius);
-    padding: 20px 24px;
-    box-shadow: var(--shadow-sm);
-    border: 1.5px solid var(--gray-200);
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    flex-wrap: wrap;
-  }
-  .checkbox-wrap {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    cursor: pointer;
-    flex: 1;
-  }
-  .custom-checkbox {
-    width: 26px;
-    height: 26px;
-    border: 2.5px solid var(--gray-200);
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s;
-    flex-shrink: 0;
-    cursor: pointer;
-  }
-  .custom-checkbox.checked {
-    background: var(--accent-green);
-    border-color: var(--accent-green);
-  }
-  .custom-checkbox svg { display: none; }
-  .custom-checkbox.checked svg { display: block; }
-  .checkbox-text { font-weight: 500; font-size: 0.95rem; }
-  .btn {
-    border: none;
-    border-radius: var(--radius-sm);
-    font-family: 'DM Sans', sans-serif;
-    font-weight: 600;
-    font-size: 0.9rem;
-    cursor: pointer;
-    padding: 10px 20px;
-    transition: all 0.2s;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .btn-primary {
-    background: var(--blue-bright);
-    color: white;
-  }
-  .btn-primary:hover { background: #1560d8; transform: translateY(-1px); box-shadow: var(--shadow-md); }
-  .btn-danger {
-    background: #fff0f1;
-    color: var(--accent-red);
-  }
-  .btn-danger:hover { background: var(--accent-red); color: white; }
-  .btn-outline {
-    background: white;
-    color: var(--blue-bright);
-    border: 2px solid var(--blue-bright);
-  }
-  .btn-outline:hover { background: var(--blue-pale); }
-  .btn-sm { padding: 6px 14px; font-size: 0.82rem; }
-  .btn-export {
-    background: linear-gradient(135deg, var(--accent-teal), #00b891);
-    color: white;
-  }
-  .btn-export:hover { transform: translateY(-1px); box-shadow: var(--shadow-md); }
+  /* HISTORY */
+  .htop{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px}
+  .htop h2{font-family:'Syne',sans-serif;font-weight:700;font-size:1.25rem}
+  .hempty{text-align:center;padding:56px 20px;color:var(--t3)}
+  .hempty p{margin-top:12px;line-height:1.6}
+  .hcard{background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r);margin-bottom:13px;overflow:hidden;transition:border-color .2s}
+  .hcard:hover{border-color:var(--bdr2)}
+  .hhead{display:flex;align-items:center;justify-content:space-between;padding:13px 17px;background:var(--bg3);flex-wrap:wrap;gap:8px}
+  .hname{font-family:'Syne',sans-serif;font-weight:700;font-size:.97rem}
+  .hchips{display:flex;gap:7px;align-items:center;flex-wrap:wrap}
+  .hchip{padding:3px 8px;border-radius:20px;font-size:.72rem;font-weight:600}
+  .hc-ok{background:var(--greend);color:var(--green)}
+  .hc-w{background:var(--amberd);color:var(--amber)}
+  .hc-d{background:rgba(59,122,246,.1);color:var(--blueb)}
+  .hc-r{background:var(--bg4);color:var(--t2)}
+  .hbody{padding:13px 17px}
+  .hrow{display:flex;gap:18px;flex-wrap:wrap;margin-bottom:9px}
+  .hi2{font-size:.81rem;color:var(--t3)}
+  .hi2 strong{color:var(--t1)}
+  .hi2.bl strong{color:var(--blueb)}
+  .hi2.am strong{color:var(--amber)}
+  .hfoot{display:flex;gap:7px;justify-content:flex-end;flex-wrap:wrap;padding-top:8px;border-top:1px solid var(--bdr);margin-top:4px}
+  .editable{border:1.5px dashed transparent;border-radius:5px;padding:1px 5px;cursor:text;transition:all .2s;display:inline-block;min-width:36px}
+  .editable:hover{border-color:var(--blue);background:rgba(59,122,246,.07)}
+  .editable:focus{outline:none;border-style:solid;border-color:var(--blue);background:var(--bg3)}
 
-  /* ─── HISTORY PAGE ─── */
-  .history-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 24px;
-    flex-wrap: gap;
-    gap: 12px;
-  }
-  .history-title {
-    font-family: 'Syne', sans-serif;
-    font-weight: 700;
-    font-size: 1.4rem;
-  }
-  .history-actions { display: flex; gap: 10px; }
+  /* MODAL */
+  .ov{position:fixed;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(5px);display:flex;align-items:center;justify-content:center;z-index:500;opacity:0;pointer-events:none;transition:opacity .2s}
+  .ov.on{opacity:1;pointer-events:all}
+  .modal{background:var(--bg2);border:1px solid var(--bdr2);border-radius:var(--r);padding:24px;max-width:370px;width:90%;box-shadow:0 8px 48px rgba(0,0,0,.6);transform:scale(.95);transition:transform .2s}
+  .ov.on .modal{transform:scale(1)}
+  .modal h3{font-family:'Syne',sans-serif;font-size:1.05rem;font-weight:700;margin-bottom:8px}
+  .modal p{color:var(--t3);font-size:.85rem;line-height:1.5;margin-bottom:18px}
+  .mbtns{display:flex;gap:9px;justify-content:flex-end}
 
-  /* ─── HISTORY CARDS ─── */
-  .history-empty {
-    text-align: center;
-    padding: 60px 20px;
-    color: var(--gray-500);
-  }
-  .history-empty svg { margin-bottom: 12px; opacity: 0.4; }
-  .history-empty p { font-size: 1rem; }
+  /* TOAST */
+  .toast{position:fixed;bottom:20px;right:20px;background:var(--bg3);border:1px solid var(--bdr2);color:var(--t1);padding:10px 17px;border-radius:9px;font-size:.85rem;font-weight:500;box-shadow:0 8px 32px rgba(0,0,0,.5);transform:translateY(66px);opacity:0;transition:all .3s;z-index:999}
+  .toast.show{transform:translateY(0);opacity:1}
+  .toast.success{border-left:3px solid var(--green)}
+  .toast.info{border-left:3px solid var(--blue)}
+  .toast.warn{border-left:3px solid var(--amber)}
 
-  .hist-card {
-    background: white;
-    border-radius: var(--radius);
-    border: 1.5px solid var(--gray-200);
-    margin-bottom: 16px;
-    overflow: hidden;
-    box-shadow: var(--shadow-sm);
-    transition: box-shadow 0.2s;
-  }
-  .hist-card:hover { box-shadow: var(--shadow-md); }
-  .hist-card-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 16px 20px;
-    background: var(--blue-pale);
-    gap: 12px;
-    flex-wrap: wrap;
-  }
-  .hist-card-title {
-    font-family: 'Syne', sans-serif;
-    font-weight: 700;
-    font-size: 1.05rem;
-    color: var(--blue-deep);
-  }
-  .hist-card-meta {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    flex-wrap: wrap;
-  }
-  .hist-badge {
-    padding: 3px 10px;
-    border-radius: 20px;
-    font-size: 0.78rem;
-    font-weight: 600;
-  }
-  .hist-badge-done { background: #e0faf5; color: #00a882; }
-  .hist-badge-pending { background: #fff3e0; color: #e08a00; }
-  .hist-card-body { padding: 16px 20px; }
-  .hist-meta-row {
-    display: flex;
-    gap: 24px;
-    flex-wrap: wrap;
-    margin-bottom: 12px;
-  }
-  .hist-meta-item { font-size: 0.85rem; color: var(--gray-500); }
-  .hist-meta-item strong { color: var(--blue-deep); }
-  .hist-card-actions { display: flex; gap: 8px; align-items: center; }
-
-  /* ─── EDITABLE FIELD ─── */
-  .editable {
-    border: 1.5px dashed transparent;
-    border-radius: 6px;
-    padding: 2px 6px;
-    cursor: text;
-    transition: all 0.2s;
-    min-width: 60px;
-    display: inline-block;
-  }
-  .editable:hover { border-color: var(--blue-bright); background: var(--blue-pale); }
-  .editable:focus { outline: none; border-color: var(--blue-bright); border-style: solid; background: white; }
-
-  /* ─── TOAST ─── */
-  .toast {
-    position: fixed;
-    bottom: 24px;
-    right: 24px;
-    background: var(--blue-deep);
-    color: white;
-    padding: 12px 20px;
-    border-radius: 10px;
-    font-size: 0.9rem;
-    font-weight: 500;
-    box-shadow: var(--shadow-lg);
-    transform: translateY(80px);
-    opacity: 0;
-    transition: all 0.3s;
-    z-index: 999;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .toast.show { transform: translateY(0); opacity: 1; }
-  .toast.success { border-left: 4px solid var(--accent-green); }
-  .toast.info { border-left: 4px solid var(--blue-bright); }
-
-  /* ─── MODAL ─── */
-  .modal-overlay {
-    position: fixed; inset: 0;
-    background: rgba(10,22,40,0.5);
-    backdrop-filter: blur(4px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 500;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.2s;
-  }
-  .modal-overlay.open { opacity: 1; pointer-events: all; }
-  .modal {
-    background: white;
-    border-radius: var(--radius);
-    padding: 28px;
-    max-width: 400px;
-    width: 90%;
-    box-shadow: var(--shadow-lg);
-    transform: scale(0.95);
-    transition: transform 0.2s;
-  }
-  .modal-overlay.open .modal { transform: scale(1); }
-  .modal h3 { font-family: 'Syne', sans-serif; font-size: 1.2rem; font-weight: 700; margin-bottom: 8px; }
-  .modal p { color: var(--gray-500); font-size: 0.9rem; margin-bottom: 20px; }
-  .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
-
-  /* ─── RESPONSIVE ─── */
-  @media (max-width: 600px) {
-    main { padding: 20px 16px; }
-    .ref-banner { flex-direction: column; align-items: flex-start; }
-    .total-divider { display: none; }
-    .total-card { gap: 16px; }
-  }
-
-  /* ─── PROGRESS BAR (parcelles faites) ─── */
-  .progress-wrap {
-    background: white;
-    border-radius: var(--radius);
-    padding: 16px 20px;
-    margin-bottom: 24px;
-    box-shadow: var(--shadow-sm);
-    border: 1.5px solid var(--gray-200);
-    display: flex;
-    align-items: center;
-    gap: 16px;
-  }
-  .progress-bar-outer {
-    flex: 1;
-    height: 10px;
-    background: var(--gray-100);
-    border-radius: 10px;
-    overflow: hidden;
-  }
-  .progress-bar-inner {
-    height: 100%;
-    background: linear-gradient(90deg, var(--blue-bright), var(--accent-teal));
-    border-radius: 10px;
-    transition: width 0.5s cubic-bezier(.4,0,.2,1);
-  }
-  .progress-label { font-size: 0.85rem; font-weight: 600; color: var(--gray-700); white-space: nowrap; }
+  @media(max-width:600px){main{padding:16px 13px}.cinn{gap:10px}.sac-box{margin-left:0;width:100%;justify-content:space-between}.tdiv{display:none}}
 </style>
 </head>
 <body>
 
 <header>
-  <div class="header-inner">
-    <div class="logo">
-      🌿 VICON Engrais
-      <span class="logo-badge">SCEV</span>
-    </div>
+  <div class="hi">
+    <div class="logo">🌿 VICON Engrais <span class="lchip">SCEV</span></div>
     <nav>
-      <button class="nav-btn active" onclick="showSection('parcelle', this)">Parcelles</button>
-      <button class="nav-btn" onclick="showSection('historique', this)">Historique</button>
+      <button class="nb on" onclick="showSec('parcelle',this)">📍 Parcelles</button>
+      <button class="nb" onclick="showSec('historique',this)">📋 Historique</button>
     </nav>
   </div>
 </header>
 
-<!-- RÉFÉRENCE CAMPAGNE -->
-<div style="background:white; border-bottom:1.5px solid var(--gray-200);">
-  <div style="max-width:1100px; margin:0 auto; padding: 0 24px;">
-    <div class="ref-banner">
-      <div class="ref-banner-label">📅 Campagne en cours</div>
-      <div class="ref-inputs">
-        <div class="ref-field">
-          <label>Date</label>
-          <input type="date" id="global-date">
-        </div>
-        <div class="ref-field">
-          <label>Référence engrais</label>
-          <input type="text" id="global-ref" placeholder="ex: NPK 15-15-15, lot A42…">
-        </div>
-        <div class="ref-field">
-          <label>Qté/ha (kg)</label>
-          <input type="number" id="global-qte" value="1000" min="1" oninput="recalculate()">
-        </div>
-      </div>
+<!-- CAMPAGNE -->
+<div class="cbar">
+  <div class="cinn">
+    <span class="clbl">📅 Campagne</span>
+    <div class="cf"><label>Date</label><input type="date" id="g-date"></div>
+    <div class="cf"><label>Référence engrais</label><input type="text" id="g-ref" placeholder="ex: NPK 15-15-15 lot A42…"></div>
+    <div class="cf"><label>Qté/ha (kg)</label><input type="number" id="g-qte" value="1000" min="1" oninput="recalc()"></div>
+    <div class="cf"><label>Sacs totaux campagne</label><input type="number" id="g-sacs-tot" placeholder="ex: 200" min="0" oninput="updateSacBox()"></div>
+    <div class="sac-box" id="sac-box" style="display:none">
+      <div class="sac-box-lbl">Sacs restants<br><small style="font-size:.68rem;opacity:.6">campagne</small></div>
+      <div class="sac-box-val" id="sac-rem">—</div>
     </div>
   </div>
 </div>
 
 <main>
 
-  <!-- ═══ SECTION PARCELLES ═══ -->
-  <section id="sec-parcelle" class="section active">
-
-    <!-- Progression -->
-    <div class="progress-wrap" id="progress-wrap">
-      <div class="progress-bar-outer">
-        <div class="progress-bar-inner" id="progress-bar" style="width:0%"></div>
-      </div>
-      <div class="progress-label" id="progress-label">0 / 18 parcelles traitées</div>
+  <!-- PARCELLES -->
+  <section id="sec-parcelle" class="sec on">
+    <div class="prog">
+      <div class="pbo"><div class="pbi" id="pbar" style="width:0%"></div></div>
+      <div class="ptxt" id="plbl">0 / 18 parcelles traitées</div>
+    </div>
+    <div class="selrow">
+      <label>Sélectionner une parcelle</label>
+      <select id="psel" onchange="loadP()">
+        <option value="">— Choisir une parcelle —</option>
+      </select>
     </div>
 
-    <!-- Sélecteur -->
-    <div class="top-bar">
-      <div class="select-wrap">
-        <label>Sélectionner une parcelle</label>
-        <select id="parcelle-select" onchange="loadParcelle()">
-          <option value="">— Choisissez une parcelle —</option>
-        </select>
-      </div>
-    </div>
-
-    <!-- Fiche parcelle (masquée par défaut) -->
-    <div id="fiche-parcelle" style="display:none;">
-
-      <!-- Carte infos -->
-      <div class="card-grid">
+    <div id="fiche" style="display:none">
+      <div class="cgrid">
         <div class="card">
-          <div class="card-title"><span>📍</span> Informations parcelle</div>
-          <div class="info-grid">
-            <div class="info-item">
-              <div class="info-label">Parcelle</div>
-              <div class="info-value" id="f-nom">—</div>
-            </div>
-            <div class="info-item">
-              <div class="info-label">Culture</div>
-              <div class="info-value" id="f-culture">—</div>
-            </div>
-            <div class="info-item">
-              <div class="info-label">Surface</div>
-              <div class="info-value" id="f-surface">—</div>
-            </div>
-            <div class="info-item">
-              <div class="info-label">Longueur des rangs</div>
-              <div class="info-value" id="f-longueur">—</div>
-            </div>
-            <div class="info-item">
-              <div class="info-label">Nombre de rangs</div>
-              <div class="info-value" id="f-rangs">—</div>
-            </div>
+          <div class="ctit">📍 Informations</div>
+          <div class="igrid">
+            <div><div class="ilbl">Parcelle</div><div class="ival" id="f-nom">—</div></div>
+            <div><div class="ilbl">Culture</div><div class="ival" id="f-cul">—</div></div>
+            <div><div class="ilbl">Surface</div><div class="ival" id="f-surf">—</div></div>
+            <div><div class="ilbl">Longueur rangs</div><div class="ival" id="f-lon">—</div></div>
+            <div><div class="ilbl">Nb rangs</div><div class="ival" id="f-rg">—</div></div>
           </div>
         </div>
-
         <div class="card">
-          <div class="card-title"><span>⚗️</span> Quantité par descente</div>
-          <table class="descente-table">
-            <thead>
-              <tr>
-                <th>Configuration</th>
-                <th>En sacs (25 kg)</th>
-                <th>En kg</th>
-              </tr>
-            </thead>
+          <div class="ctit">⚗️ Qté par descente</div>
+          <table class="dt">
+            <thead><tr><th>Config.</th><th>Sacs (25 kg)</th><th>Kg</th></tr></thead>
             <tbody>
-              <tr>
-                <td><span class="badge badge-blue">9 rangs</span></td>
-                <td id="d9-sacs">—</td>
-                <td id="d9-kg">—</td>
-              </tr>
-              <tr>
-                <td><span class="badge badge-teal">11 rangs</span></td>
-                <td id="d11-sacs">—</td>
-                <td id="d11-kg">—</td>
-              </tr>
+              <tr><td><span class="chip cb">9 rangs</span></td><td id="d9s">—</td><td id="d9k">—</td></tr>
+              <tr><td><span class="chip ct">11 rangs</span></td><td id="d11s">—</td><td id="d11k">—</td></tr>
             </tbody>
           </table>
         </div>
       </div>
 
-      <!-- Total -->
-      <div class="total-card">
-        <div class="total-stat">
-          <div class="total-stat-value" id="t-kg">—</div>
-          <div class="total-stat-label">kg total parcelle</div>
+      <div class="tstrip">
+        <div class="titem"><div class="tval bl" id="t-kg">—</div><div class="tlbl">kg total parcelle</div></div>
+        <div class="tdiv"></div>
+        <div class="titem"><div class="tval" id="t-sc">—</div><div class="tlbl">sacs calculés (25 kg)</div></div>
+        <div class="tdiv"></div>
+        <div class="titem"><div class="tval am" id="t-sr">—</div><div class="tlbl">sacs réels</div></div>
+        <div class="tdiv"></div>
+        <div class="titem"><div class="tval" id="t-ha">—</div><div class="tlbl">ha</div></div>
+      </div>
+
+      <!-- Saisie sacs réels -->
+      <div class="srcard">
+        <div class="ico">🎒</div>
+        <div class="srinfo">
+          <h4>Sacs réellement utilisés</h4>
+          <p id="sr-note">Laissez vide pour utiliser la valeur calculée.</p>
         </div>
-        <div class="total-divider"></div>
-        <div class="total-stat">
-          <div class="total-stat-value" id="t-sacs">—</div>
-          <div class="total-stat-label">sacs total (25 kg)</div>
-        </div>
-        <div class="total-divider"></div>
-        <div class="total-stat">
-          <div class="total-stat-value" id="t-surface">—</div>
-          <div class="total-stat-label">ha</div>
+        <div class="srinput-wrap">
+          <label>Nb sacs réels</label>
+          <input type="number" class="srinput" id="sr-input" placeholder="—" min="0" step="0.5" oninput="onSR()">
         </div>
       </div>
 
-      <!-- Validation -->
-      <div class="validate-zone">
-        <div class="checkbox-wrap" onclick="toggleDone()">
-          <div class="custom-checkbox" id="done-checkbox">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg>
+      <div class="vrow">
+        <div class="cbwrap" onclick="toggleDone()">
+          <div class="cbox" id="cbox">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3.5"><path d="M20 6 9 17l-5-5"/></svg>
           </div>
-          <div class="checkbox-text">Parcelle traitée — cocher pour valider</div>
+          <span class="cblbl">Marquer la parcelle comme traitée</span>
         </div>
-        <div style="display:flex; gap:8px; flex-wrap:wrap;">
-          <button class="btn btn-primary" onclick="saveToHistory()">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-            Enregistrer dans l'historique
-          </button>
-        </div>
-      </div>
-
-    </div>
-  </section>
-
-  <!-- ═══ SECTION HISTORIQUE ═══ -->
-  <section id="sec-historique" class="section">
-    <div class="history-header">
-      <div class="history-title">📋 Historique des passages</div>
-      <div class="history-actions">
-        <button class="btn btn-export" onclick="exportAllPDF()">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          Exporter tout en PDF
+        <button class="btn btn-p" onclick="saveE()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          Enregistrer
         </button>
       </div>
     </div>
-    <div id="history-list"></div>
   </section>
 
+  <!-- HISTORIQUE -->
+  <section id="sec-historique" class="sec">
+    <div class="htop">
+      <h2>📋 Historique des passages</h2>
+      <button class="btn btn-t" onclick="exportAll()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Exporter tout PDF
+      </button>
+    </div>
+    <div id="hlist"></div>
+  </section>
 </main>
 
-<!-- Modal de confirmation suppression -->
-<div class="modal-overlay" id="delete-modal">
+<!-- MODAL -->
+<div class="ov" id="dmod">
   <div class="modal">
     <h3>🗑️ Supprimer l'entrée ?</h3>
-    <p>Cette action est irréversible. L'enregistrement sera définitivement supprimé de l'historique.</p>
-    <div class="modal-actions">
-      <button class="btn btn-outline" onclick="closeModal()">Annuler</button>
-      <button class="btn btn-danger" onclick="confirmDelete()">Supprimer</button>
+    <p>Cette action est irréversible. L'enregistrement sera définitivement supprimé.</p>
+    <div class="mbtns">
+      <button class="btn btn-g" onclick="closeMod()">Annuler</button>
+      <button class="btn btn-d" onclick="confirmDel()">Supprimer</button>
     </div>
   </div>
 </div>
-
-<!-- Toast -->
 <div class="toast" id="toast"></div>
 
 <script>
-// ════════════════════════════════════════════
-//  DATA
-// ════════════════════════════════════════════
-const PARCELLES_DATA = [
-  { nom: "40 Rangs meunier", culture: "vigne champenoise", surface: 0.43, longueur: 100, rangs: 40 },
-  { nom: "6 rangs Malivas", culture: "vigne champenoise", surface: 0.04, longueur: 80, rangs: 6 },
-  { nom: "Asperges", culture: "vigne champenoise", surface: 0.02, longueur: 50, rangs: 5 },
-  { nom: "Catherine", culture: "vigne champenoise", surface: 0.06, longueur: 40, rangs: 14 },
-  { nom: "Chauffours Chardonnay", culture: "vigne champenoise", surface: 0.35, longueur: 140, rangs: 140 },
-  { nom: "Chauffours Meuniers", culture: "vigne champenoise", surface: 0.53, longueur: 140, rangs: 140 },
-  { nom: "Chauffours meuniers Gr", culture: "vigne champenoise", surface: 0.36, longueur: 140, rangs: 140 },
-  { nom: "Le Barré", culture: "vigne champenoise", surface: 0.31, longueur: 150, rangs: 21 },
-  { nom: "Le rez", culture: "vigne champenoise", surface: 0.06, longueur: 40, rangs: 15 },
-  { nom: "les 7 Rangs", culture: "vigne champenoise", surface: 0.07, longueur: 100, rangs: 7 },
-  { nom: "Les Hayes", culture: "vigne champenoise", surface: 0.39, longueur: 50, rangs: 80 },
-  { nom: "Les Petits Pinots", culture: "vigne champenoise", surface: 0.11, longueur: 60, rangs: 15 },
-  { nom: "Les Russiaux", culture: "vigne champenoise", surface: 0.23, longueur: 100, rangs: 11 },
-  { nom: "Malivas Chardonnay", culture: "vigne champenoise", surface: 0.26, longueur: 140, rangs: 17 },
-  { nom: "Malivas Pinot", culture: "vigne champenoise", surface: 0.15, longueur: 140, rangs: 11 },
-  { nom: "montagne de Reims", culture: "vigne champenoise", surface: 0.21, longueur: 90, rangs: 20 },
-  { nom: "Pelles à Fours", culture: "vigne champenoise", surface: 0.23, longueur: 130, rangs: 15 },
-  { nom: "Poncelet", culture: "vigne champenoise", surface: 0.26, longueur: 130, rangs: 21 }
+const PAR = [
+  {nom:"40 Rangs meunier",      cul:"vigne champenoise",surface:0.43,lon:100,rg:40},
+  {nom:"6 rangs Malivas",       cul:"vigne champenoise",surface:0.04,lon:80, rg:6},
+  {nom:"Asperges",              cul:"vigne champenoise",surface:0.02,lon:50, rg:5},
+  {nom:"Catherine",             cul:"vigne champenoise",surface:0.06,lon:40, rg:14},
+  {nom:"Chauffours Chardonnay", cul:"vigne champenoise",surface:0.35,lon:140,rg:140},
+  {nom:"Chauffours Meuniers",   cul:"vigne champenoise",surface:0.53,lon:140,rg:140},
+  {nom:"Chauffours meuniers Gr",cul:"vigne champenoise",surface:0.36,lon:140,rg:140},
+  {nom:"Le Barré",              cul:"vigne champenoise",surface:0.31,lon:150,rg:21},
+  {nom:"Le rez",                cul:"vigne champenoise",surface:0.06,lon:40, rg:15},
+  {nom:"les 7 Rangs",           cul:"vigne champenoise",surface:0.07,lon:100,rg:7},
+  {nom:"Les Hayes",             cul:"vigne champenoise",surface:0.39,lon:50, rg:80},
+  {nom:"Les Petits Pinots",     cul:"vigne champenoise",surface:0.11,lon:60, rg:15},
+  {nom:"Les Russiaux",          cul:"vigne champenoise",surface:0.23,lon:100,rg:11},
+  {nom:"Malivas Chardonnay",    cul:"vigne champenoise",surface:0.26,lon:140,rg:17},
+  {nom:"Malivas Pinot",         cul:"vigne champenoise",surface:0.15,lon:140,rg:11},
+  {nom:"montagne de Reims",     cul:"vigne champenoise",surface:0.21,lon:90, rg:20},
+  {nom:"Pelles à Fours",        cul:"vigne champenoise",surface:0.23,lon:130,rg:15},
+  {nom:"Poncelet",              cul:"vigne champenoise",surface:0.26,lon:130,rg:21}
 ];
+const SAC=25;
+let cur=null,done=false,delId=null;
 
-const SAC_KG = 25;
+function r2(v){return Math.round(v*100)/100}
+function getQte(){return parseFloat(document.getElementById('g-qte').value)||1000}
 
-// ════════════════════════════════════════════
-//  STATE
-// ════════════════════════════════════════════
-let currentParcelle = null;
-let isDone = false;
-let deleteTargetId = null;
-
-// ════════════════════════════════════════════
-//  INIT
-// ════════════════════════════════════════════
-function init() {
-  // Date par défaut = aujourd'hui
-  document.getElementById('global-date').valueAsDate = new Date();
-
-  // Remplir le select
-  const sel = document.getElementById('parcelle-select');
-  PARCELLES_DATA.forEach((p, i) => {
-    const opt = document.createElement('option');
-    opt.value = i;
-    opt.textContent = p.nom;
-    sel.appendChild(opt);
-  });
-
-  updateProgress();
-  renderHistory();
+function calcP(p,q){
+  const tk=r2(p.surface*q),ts=r2(tk/SAC);
+  const k9=r2(q*p.lon*9/10000),k11=r2(q*p.lon*11/10000);
+  return{tk,ts,k9,s9:r2(k9/SAC),k11,s11:r2(k11/SAC)};
 }
 
-// ════════════════════════════════════════════
-//  CALCULS
-// ════════════════════════════════════════════
-function calc(p, qteHa) {
-  // Qté totale parcelle (kg) = surface * qteHa
-  const totalKg = p.surface * qteHa;
-  const totalSacs = totalKg / SAC_KG;
+function init(){
+  document.getElementById('g-date').valueAsDate=new Date();
+  const s=document.getElementById('psel');
+  PAR.forEach((p,i)=>{const o=document.createElement('option');o.value=i;o.textContent=p.nom;s.appendChild(o)});
+  updProg();updateSacBox();renderH();
+}
 
-  // Qté par descente = qteHa * longueur(m) * NbRangsDescente / 10000
-  // (surface d'une descente = longueur * espacement_interrang ; on suppose ~1m/rang → NbRangs*longueur m²)
-  // Formule originale : engraisDescente = qteHa * longueur * NbRangsDescente / 10000
-  const kg9 = qteHa * p.longueur * 9 / 10000;
-  const kg11 = qteHa * p.longueur * 11 / 10000;
+function updateSacBox(){
+  const tot=parseFloat(document.getElementById('g-sacs-tot').value);
+  const box=document.getElementById('sac-box');
+  if(!tot||isNaN(tot)){box.style.display='none';return}
+  box.style.display='flex';
+  const used=getH().reduce((a,e)=>a+(parseFloat(e.sacsReels)||0),0);
+  const rem=r2(tot-used);
+  const el=document.getElementById('sac-rem');
+  el.textContent=rem;
+  el.style.color=rem<0?'var(--red)':rem<5?'var(--red)':'var(--amber)';
+}
 
-  return {
-    totalKg: round2(totalKg),
-    totalSacs: round2(totalSacs),
-    kg9: round2(kg9),
-    sacs9: round2(kg9 / SAC_KG),
-    kg11: round2(kg11),
-    sacs11: round2(kg11 / SAC_KG)
+function loadP(){
+  const v=document.getElementById('psel').value;
+  if(v===''){document.getElementById('fiche').style.display='none';cur=null;return}
+  cur=parseInt(v);done=false;
+  document.getElementById('cbox').classList.remove('on');
+  document.getElementById('sr-input').value='';
+  renderF(PAR[cur]);
+  document.getElementById('fiche').style.display='block';
+}
+
+function recalc(){if(cur!==null)renderF(PAR[cur])}
+
+function renderF(p){
+  const c=calcP(p,getQte());
+  document.getElementById('f-nom').textContent=p.nom;
+  document.getElementById('f-cul').textContent=p.cul;
+  document.getElementById('f-surf').textContent=p.surface+' ha';
+  document.getElementById('f-lon').textContent=p.lon+' m';
+  document.getElementById('f-rg').textContent=p.rg;
+  document.getElementById('d9s').innerHTML=`<strong>${c.s9}</strong> sac${c.s9>1?'s':''}`;
+  document.getElementById('d9k').innerHTML=`<strong>${c.k9}</strong> kg`;
+  document.getElementById('d11s').innerHTML=`<strong>${c.s11}</strong> sac${c.s11>1?'s':''}`;
+  document.getElementById('d11k').innerHTML=`<strong>${c.k11}</strong> kg`;
+  document.getElementById('t-kg').textContent=c.tk;
+  document.getElementById('t-sc').textContent=c.ts;
+  document.getElementById('t-ha').textContent=p.surface;
+  document.getElementById('sr-note').textContent=`Valeur calculée par défaut : ${c.ts} sacs. Laissez vide pour l'utiliser.`;
+  onSR();
+}
+
+function onSR(){
+  if(cur===null)return;
+  const c=calcP(PAR[cur],getQte());
+  const v=document.getElementById('sr-input').value;
+  const sr=v===''?c.ts:(parseFloat(v)||c.ts);
+  document.getElementById('t-sr').textContent=isNaN(sr)?'—':sr;
+}
+
+function toggleDone(){done=!done;document.getElementById('cbox').classList.toggle('on',done)}
+
+function saveE(){
+  if(cur===null)return;
+  const p=PAR[cur];const q=getQte();const c=calcP(p,q);
+  const v=document.getElementById('sr-input').value;
+  const sr=v===''?c.ts:(parseFloat(v)||c.ts);
+  const e={
+    id:Date.now(),
+    date:document.getElementById('g-date').value,
+    ref:document.getElementById('g-ref').value.trim(),
+    q,sr,
+    nom:p.nom,cul:p.cul,surface:p.surface,lon:p.lon,rg:p.rg,
+    done,
+    tk:c.tk,ts:c.ts,k9:c.k9,s9:c.s9,k11:c.k11,s11:c.s11
   };
+  const h=getH();h.unshift(e);saveH(h);
+  renderH();updProg();updateSacBox();
+  toast('✅ Enregistré dans l\'historique','success');
 }
 
-function round2(v) { return Math.round(v * 100) / 100; }
+function getH(){try{return JSON.parse(localStorage.getItem('vicon3')||'[]')}catch{return[]}}
+function saveH(h){localStorage.setItem('vicon3',JSON.stringify(h))}
 
-function getQteHa() {
-  return parseFloat(document.getElementById('global-qte').value) || 1000;
-}
+function fmtD(d){if(!d)return'—';const[y,m,j]=d.split('-');return`${j}/${m}/${y}`}
 
-function recalculate() {
-  if (currentParcelle === null) return;
-  const p = PARCELLES_DATA[currentParcelle];
-  renderFiche(p);
-}
-
-// ════════════════════════════════════════════
-//  AFFICHAGE FICHE
-// ════════════════════════════════════════════
-function loadParcelle() {
-  const sel = document.getElementById('parcelle-select');
-  const idx = parseInt(sel.value);
-  if (isNaN(idx)) {
-    document.getElementById('fiche-parcelle').style.display = 'none';
-    currentParcelle = null;
+function renderH(){
+  const h=getH();const el=document.getElementById('hlist');
+  if(!h.length){
+    el.innerHTML=`<div class="hempty"><svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" opacity=".3"><path d="M9 11H7a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="8" rx="1"/></svg><p>Aucun enregistrement.<br>Sélectionnez une parcelle et cliquez sur <strong>Enregistrer</strong>.</p></div>`;
     return;
   }
-  currentParcelle = idx;
-  isDone = false;
-  document.getElementById('done-checkbox').classList.remove('checked');
-  renderFiche(PARCELLES_DATA[idx]);
-  document.getElementById('fiche-parcelle').style.display = 'block';
-  document.getElementById('fiche-parcelle').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-}
-
-function renderFiche(p) {
-  const c = calc(p, getQteHa());
-  document.getElementById('f-nom').textContent = p.nom;
-  document.getElementById('f-culture').textContent = p.culture;
-  document.getElementById('f-surface').textContent = p.surface + ' ha';
-  document.getElementById('f-longueur').textContent = p.longueur + ' m';
-  document.getElementById('f-rangs').textContent = p.rangs;
-  document.getElementById('d9-sacs').innerHTML = `<strong>${c.sacs9}</strong> sac${c.sacs9 > 1 ? 's' : ''}`;
-  document.getElementById('d9-kg').innerHTML = `<strong>${c.kg9}</strong> kg`;
-  document.getElementById('d11-sacs').innerHTML = `<strong>${c.sacs11}</strong> sac${c.sacs11 > 1 ? 's' : ''}`;
-  document.getElementById('d11-kg').innerHTML = `<strong>${c.kg11}</strong> kg`;
-  document.getElementById('t-kg').textContent = c.totalKg;
-  document.getElementById('t-sacs').textContent = c.totalSacs;
-  document.getElementById('t-surface').textContent = p.surface;
-}
-
-// ════════════════════════════════════════════
-//  VALIDATION
-// ════════════════════════════════════════════
-function toggleDone() {
-  isDone = !isDone;
-  document.getElementById('done-checkbox').classList.toggle('checked', isDone);
-}
-
-// ════════════════════════════════════════════
-//  HISTORIQUE – SAUVEGARDE
-// ════════════════════════════════════════════
-function saveToHistory() {
-  if (currentParcelle === null) return;
-  const p = PARCELLES_DATA[currentParcelle];
-  const qteHa = getQteHa();
-  const c = calc(p, qteHa);
-  const date = document.getElementById('global-date').value;
-  const ref = document.getElementById('global-ref').value;
-
-  const entry = {
-    id: Date.now(),
-    date,
-    ref,
-    qteHa,
-    parcelle: p.nom,
-    culture: p.culture,
-    surface: p.surface,
-    longueur: p.longueur,
-    rangs: p.rangs,
-    done: isDone,
-    ...c
-  };
-
-  const history = getHistory();
-  history.unshift(entry);
-  saveHistory(history);
-  renderHistory();
-  updateProgress();
-  toast('✅ Enregistré dans l\'historique', 'success');
-}
-
-function getHistory() {
-  try { return JSON.parse(localStorage.getItem('vicon_history') || '[]'); }
-  catch { return []; }
-}
-
-function saveHistory(h) {
-  localStorage.setItem('vicon_history', JSON.stringify(h));
-}
-
-// ════════════════════════════════════════════
-//  HISTORIQUE – AFFICHAGE
-// ════════════════════════════════════════════
-function renderHistory() {
-  const history = getHistory();
-  const container = document.getElementById('history-list');
-
-  if (history.length === 0) {
-    container.innerHTML = `
-      <div class="history-empty">
-        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 11H7a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="8" rx="1"/></svg>
-        <p>Aucun enregistrement pour l'instant.<br>Sélectionnez une parcelle et cliquez sur <strong>Enregistrer</strong>.</p>
-      </div>`;
-    return;
-  }
-
-  container.innerHTML = history.map(e => `
-    <div class="hist-card" data-id="${e.id}">
-      <div class="hist-card-header">
-        <div>
-          <div class="hist-card-title">${e.parcelle}</div>
-        </div>
-        <div class="hist-card-meta">
-          <span class="hist-badge ${e.done ? 'hist-badge-done' : 'hist-badge-pending'}">
-            ${e.done ? '✅ Traitée' : '⏳ En attente'}
-          </span>
-          <span class="hist-badge" style="background:var(--blue-pale);color:var(--blue-mid);">
-            📅 ${formatDate(e.date)}
-          </span>
+  el.innerHTML=h.map(e=>`
+    <div class="hcard">
+      <div class="hhead">
+        <div class="hname">${e.nom}</div>
+        <div class="hchips">
+          <span class="hchip ${e.done?'hc-ok':'hc-w'}">${e.done?'✅ Traitée':'⏳ En attente'}</span>
+          <span class="hchip hc-d">📅 ${fmtD(e.date)}</span>
+          ${e.ref?`<span class="hchip hc-r">🧪 ${e.ref}</span>`:''}
         </div>
       </div>
-      <div class="hist-card-body">
-        <div class="hist-meta-row">
-          <div class="hist-meta-item">Réf. engrais : <strong contenteditable="true" class="editable" onblur="updateField(${e.id},'ref',this.textContent)">${e.ref || '—'}</strong></div>
-          <div class="hist-meta-item">Qté/ha : <strong contenteditable="true" class="editable" onblur="updateFieldNum(${e.id},'qteHa',this.textContent)">${e.qteHa} kg</strong></div>
-          <div class="hist-meta-item">Surface : <strong>${e.surface} ha</strong></div>
-          <div class="hist-meta-item">Rangs : <strong>${e.rangs}</strong> × ${e.longueur} m</div>
+      <div class="hbody">
+        <div class="hrow">
+          <div class="hi2">Réf. engrais : <strong contenteditable="true" class="editable" onblur="updF(${e.id},'ref',this.textContent)">${e.ref||'—'}</strong></div>
+          <div class="hi2">Qté/ha : <strong>${e.q} kg</strong></div>
+          <div class="hi2">Surface : <strong>${e.surface} ha</strong></div>
+          <div class="hi2">Rangs : <strong>${e.rg}</strong> × ${e.lon} m</div>
         </div>
-        <div class="hist-meta-row">
-          <div class="hist-meta-item">Total parcelle : <strong style="color:var(--blue-bright)">${e.totalKg} kg</strong> / <strong>${e.totalSacs} sacs</strong></div>
-          <div class="hist-meta-item">Descente 9R : <strong>${e.kg9} kg</strong> (${e.sacs9} sacs)</div>
-          <div class="hist-meta-item">Descente 11R : <strong>${e.kg11} kg</strong> (${e.sacs11} sacs)</div>
+        <div class="hrow">
+          <div class="hi2 bl">Total calculé : <strong>${e.tk} kg</strong> / <strong>${e.ts} sacs</strong></div>
+          <div class="hi2 am">Sacs réels : <strong contenteditable="true" class="editable" onblur="updFN(${e.id},'sr',this.textContent)">${e.sr}</strong></div>
+          <div class="hi2">Desc. 9R : <strong>${e.k9} kg</strong> (${e.s9} sacs)</div>
+          <div class="hi2">Desc. 11R : <strong>${e.k11} kg</strong> (${e.s11} sacs)</div>
         </div>
-        <div class="hist-card-actions" style="margin-top:8px; gap:8px; flex-wrap:wrap; justify-content: flex-end;">
-          <button class="btn btn-outline btn-sm" onclick="toggleDoneHistory(${e.id})">
-            ${e.done ? '↩ Marquer non traitée' : '✅ Marquer traitée'}
-          </button>
-          <button class="btn btn-outline btn-sm" onclick="exportSinglePDF(${e.id})">
-            📄 PDF
-          </button>
-          <button class="btn btn-danger btn-sm" onclick="askDelete(${e.id})">
-            🗑 Supprimer
-          </button>
+        <div class="hfoot">
+          <button class="btn btn-g btn-sm" onclick="togDoneH(${e.id})">${e.done?'↩ Non traitée':'✅ Marquer traitée'}</button>
+          <button class="btn btn-g btn-sm" onclick="expOne(${e.id})">📄 PDF</button>
+          <button class="btn btn-d btn-sm" onclick="askDel(${e.id})">🗑 Supprimer</button>
         </div>
       </div>
-    </div>
-  `).join('');
+    </div>`).join('');
 }
 
-function formatDate(d) {
-  if (!d) return '—';
-  const [y, m, day] = d.split('-');
-  return `${day}/${m}/${y}`;
+function updF(id,k,v){const h=getH();const e=h.find(x=>x.id===id);if(e){e[k]=v.trim();saveH(h);updateSacBox()}}
+function updFN(id,k,v){const h=getH();const e=h.find(x=>x.id===id);if(e){const n=parseFloat(v);if(!isNaN(n)){e[k]=n;saveH(h);updateSacBox()}}}
+function togDoneH(id){const h=getH();const e=h.find(x=>x.id===id);if(e){e.done=!e.done;saveH(h);renderH();updProg()}}
+
+function askDel(id){delId=id;document.getElementById('dmod').classList.add('on')}
+function closeMod(){document.getElementById('dmod').classList.remove('on');delId=null}
+function confirmDel(){if(!delId)return;saveH(getH().filter(x=>x.id!==delId));renderH();updProg();updateSacBox();closeMod();toast('🗑 Supprimé','info')}
+document.getElementById('dmod').addEventListener('click',e=>{if(e.target===document.getElementById('dmod'))closeMod()})
+
+function updProg(){
+  const done=new Set(getH().filter(e=>e.done).map(e=>e.nom)).size;
+  const pct=Math.round(done/PAR.length*100);
+  document.getElementById('pbar').style.width=pct+'%';
+  document.getElementById('plbl').textContent=`${done} / ${PAR.length} parcelles traitées`;
 }
 
-// ════════════════════════════════════════════
-//  ÉDITION IN-LINE HISTORIQUE
-// ════════════════════════════════════════════
-function updateField(id, key, val) {
-  const h = getHistory();
-  const e = h.find(x => x.id === id);
-  if (e) { e[key] = val.trim(); saveHistory(h); }
-}
+/* ── PDF ── */
+function expOne(id){const e=getH().find(x=>x.id===id);if(e)genPDF([e],`Engrais_${e.nom.replace(/\s+/g,'_')}`)}
+function exportAll(){const h=getH();if(!h.length){toast('Historique vide','warn');return}genPDF(h,`Engrais_Historique_${new Date().toISOString().slice(0,10)}`)}
 
-function updateFieldNum(id, key, val) {
-  const h = getHistory();
-  const e = h.find(x => x.id === id);
-  if (e) {
-    const n = parseFloat(val);
-    if (!isNaN(n)) { e[key] = n; saveHistory(h); }
-  }
-}
-
-function toggleDoneHistory(id) {
-  const h = getHistory();
-  const e = h.find(x => x.id === id);
-  if (e) { e.done = !e.done; saveHistory(h); renderHistory(); updateProgress(); }
-}
-
-// ════════════════════════════════════════════
-//  SUPPRESSION
-// ════════════════════════════════════════════
-function askDelete(id) {
-  deleteTargetId = id;
-  document.getElementById('delete-modal').classList.add('open');
-}
-
-function closeModal() {
-  document.getElementById('delete-modal').classList.remove('open');
-  deleteTargetId = null;
-}
-
-function confirmDelete() {
-  if (deleteTargetId === null) return;
-  const h = getHistory().filter(x => x.id !== deleteTargetId);
-  saveHistory(h);
-  renderHistory();
-  updateProgress();
-  closeModal();
-  toast('🗑 Entrée supprimée', 'info');
-}
-
-document.getElementById('delete-modal').addEventListener('click', function(e) {
-  if (e.target === this) closeModal();
-});
-
-// ════════════════════════════════════════════
-//  PROGRESSION
-// ════════════════════════════════════════════
-function updateProgress() {
-  const h = getHistory();
-  const doneSet = new Set(h.filter(e => e.done).map(e => e.parcelle));
-  const done = doneSet.size;
-  const total = PARCELLES_DATA.length;
-  const pct = Math.round((done / total) * 100);
-  document.getElementById('progress-bar').style.width = pct + '%';
-  document.getElementById('progress-label').textContent = `${done} / ${total} parcelles traitées`;
-}
-
-// ════════════════════════════════════════════
-//  EXPORT PDF
-// ════════════════════════════════════════════
-function exportSinglePDF(id) {
-  const h = getHistory();
-  const e = h.find(x => x.id === id);
-  if (!e) return;
-  generatePDF([e], `Engrais_${e.parcelle.replace(/\s+/g,'_')}_${e.date}`);
-}
-
-function exportAllPDF() {
-  const h = getHistory();
-  if (h.length === 0) { toast('Historique vide', 'info'); return; }
-  generatePDF(h, `Engrais_Historique_${new Date().toISOString().slice(0,10)}`);
-}
-
-function generatePDF(entries, filename) {
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
-  const W = 210, M = 15;
-  let y = 20;
-
+function genPDF(entries,fn){
+  const{jsPDF}=window.jspdf;
+  const doc=new jsPDF({unit:'mm',format:'a4'});
+  const W=210,M=14;let y=0;
   // Header
-  doc.setFillColor(13, 33, 71);
-  doc.rect(0, 0, W, 30, 'F');
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(18);
-  doc.setFont('helvetica', 'bold');
-  doc.text('VICON — Gestion Engrais', M, 14);
-  doc.setFontSize(10);
-  doc.setFont('helvetica', 'normal');
-  doc.text('SCEV Champagne — Commune CHARLY', M, 22);
-  doc.text(`Généré le ${new Date().toLocaleDateString('fr-FR')}`, W - M, 22, { align: 'right' });
+  doc.setFillColor(13,21,38);doc.rect(0,0,W,28,'F');
+  doc.setFillColor(59,122,246);doc.rect(0,28,W,2,'F');
+  doc.setTextColor(232,237,248);doc.setFont('helvetica','bold');doc.setFontSize(15);
+  doc.text('VICON — Gestion Engrais',M,13);
+  doc.setFont('helvetica','normal');doc.setFontSize(8.5);doc.setTextColor(143,163,192);
+  doc.text('SCEV Champagne — Commune CHARLY',M,21);
+  doc.text(`Généré le ${new Date().toLocaleDateString('fr-FR')}`,W-M,21,{align:'right'});
+  y=36;
 
-  y = 38;
-
-  entries.forEach((e, i) => {
-    if (y > 250) { doc.addPage(); y = 20; }
-
-    // Fond titre parcelle
-    doc.setFillColor(235, 245, 255);
-    doc.roundedRect(M, y - 5, W - 2*M, 36, 3, 3, 'F');
-
-    doc.setTextColor(13, 33, 71);
-    doc.setFontSize(13);
-    doc.setFont('helvetica', 'bold');
-    doc.text(e.parcelle, M + 4, y + 3);
-
-    const statusTxt = e.done ? '✓ Traitée' : '⏳ En attente';
-    doc.setFontSize(9);
-    doc.setTextColor(e.done ? 0 : 180, e.done ? 168 : 130, e.done ? 130 : 0);
-    doc.text(statusTxt, W - M - 4, y + 3, { align: 'right' });
-
-    doc.setTextColor(80, 100, 130);
-    doc.setFontSize(9);
-    doc.setFont('helvetica', 'normal');
-    doc.text(`Date : ${formatDate(e.date)}   |   Réf. : ${e.ref || '—'}   |   Qté/ha : ${e.qteHa} kg`, M + 4, y + 11);
-    doc.text(`Surface : ${e.surface} ha   |   Rangs : ${e.rangs} × ${e.longueur} m`, M + 4, y + 18);
-
-    // Tableau résultats
-    const cols = [['9 rangs', `${e.kg9} kg`, `${e.sacs9} sacs`], ['11 rangs', `${e.kg11} kg`, `${e.sacs11} sacs`], ['TOTAL PARCELLE', `${e.totalKg} kg`, `${e.totalSacs} sacs`]];
-    const headers = ['Configuration', 'Quantité (kg)', 'Nb sacs (25 kg)'];
-    const colW = [50, 50, 50];
-    const startX = M + 4;
-    let tx = y + 26;
-
-    // Header tableau
-    doc.setFillColor(29, 110, 245);
-    doc.rect(startX, tx, 150, 7, 'F');
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(8);
-    doc.setFont('helvetica', 'bold');
-    headers.forEach((h, hi) => {
-      doc.text(h, startX + colW.slice(0,hi).reduce((a,b)=>a+b,0) + 2, tx + 5);
+  entries.forEach(e=>{
+    if(y>252){doc.addPage();y=14}
+    // Bloc titre
+    doc.setFillColor(22,32,64);doc.roundedRect(M,y,W-2*M,10,2,2,'F');
+    doc.setTextColor(232,237,248);doc.setFont('helvetica','bold');doc.setFontSize(10.5);
+    doc.text(e.nom,M+4,y+7);
+    doc.setFontSize(7.5);
+    doc.setTextColor(e.done?34:245,e.done?197:166,e.done?94:35);
+    doc.text(e.done?'✓ Traitée':'En attente',W-M-3,y+7,{align:'right'});
+    y+=13;
+    // Meta
+    doc.setTextColor(86,106,135);doc.setFont('helvetica','normal');doc.setFontSize(8);
+    doc.text(`Date : ${fmtD(e.date)}`,M,y);
+    doc.text(`Réf. engrais : ${e.ref||'—'}`,M+36,y);
+    doc.text(`Qté/ha : ${e.q} kg`,M+108,y);
+    y+=5.5;
+    doc.text(`Surface : ${e.surface} ha    Rangs : ${e.rg} × ${e.lon} m`,M,y);
+    y+=9;
+    // Tableau
+    const rows=[
+      ['9 rangs',`${e.s9} sacs`,`${e.k9} kg`],
+      ['11 rangs',`${e.s11} sacs`,`${e.k11} kg`],
+      ['Total calculé',`${e.ts} sacs`,`${e.tk} kg`],
+      ['Sacs réels utilisés',`${e.sr} sacs`,`${r2(e.sr*SAC)} kg`],
+    ];
+    const cw=[68,42,38],sx=M;
+    doc.setFillColor(59,122,246);doc.rect(sx,y,148,7,'F');
+    doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(7);
+    ['Configuration','Sacs (25 kg)','Kg'].forEach((h,i)=>doc.text(h,sx+cw.slice(0,i).reduce((a,b)=>a+b,0)+3,y+5));
+    y+=7;
+    rows.forEach((row,ri)=>{
+      const isT=ri===2,isR=ri===3;
+      const bg=isR?[28,42,78]:isT?[17,24,39]:(ri%2===0?[26,34,60]:[22,30,52]);
+      doc.setFillColor(...bg);doc.rect(sx,y,148,7,'F');
+      doc.setFont('helvetica',(isT||isR)?'bold':'normal');
+      const tc=isR?[245,166,35]:isT?[107,163,255]:[232,237,248];
+      doc.setTextColor(...tc);doc.setFontSize(8);
+      row.forEach((cell,ci)=>doc.text(cell,sx+cw.slice(0,ci).reduce((a,b)=>a+b,0)+3,y+5));
+      y+=7;
     });
-    tx += 7;
-
-    cols.forEach((row, ri) => {
-      const bg = ri === 2 ? [13, 33, 71] : (ri % 2 === 0 ? [255,255,255] : [245,249,255]);
-      doc.setFillColor(...bg);
-      doc.rect(startX, tx, 150, 7, 'F');
-      doc.setTextColor(ri === 2 ? 255 : 30, ri === 2 ? 255 : 50, ri === 2 ? 255 : 80);
-      doc.setFont('helvetica', ri === 2 ? 'bold' : 'normal');
-      row.forEach((cell, ci) => {
-        doc.text(cell, startX + colW.slice(0,ci).reduce((a,b)=>a+b,0) + 2, tx + 5);
-      });
-      tx += 7;
-    });
-
-    y = tx + 10;
+    y+=10;
   });
-
-  doc.save(filename + '.pdf');
-  toast('📄 PDF exporté !', 'success');
+  doc.save(fn+'.pdf');
+  toast('📄 PDF exporté !','success');
 }
 
-// ════════════════════════════════════════════
-//  NAV
-// ════════════════════════════════════════════
-function showSection(id, btn) {
-  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('sec-' + id).classList.add('active');
-  btn.classList.add('active');
-  if (id === 'historique') renderHistory();
+function r2(v){return Math.round(v*100)/100}
+
+function showSec(id,btn){
+  document.querySelectorAll('.sec').forEach(s=>s.classList.remove('on'));
+  document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'));
+  document.getElementById('sec-'+id).classList.add('on');
+  btn.classList.add('on');
+  if(id==='historique')renderH();
 }
 
-// ════════════════════════════════════════════
-//  TOAST
-// ════════════════════════════════════════════
-function toast(msg, type = 'info') {
-  const el = document.getElementById('toast');
-  el.textContent = msg;
-  el.className = `toast ${type} show`;
-  setTimeout(() => el.classList.remove('show'), 2800);
+function toast(msg,type='info'){
+  const el=document.getElementById('toast');
+  el.textContent=msg;el.className=`toast ${type} show`;
+  clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),2800);
 }
 
-// ════════════════════════════════════════════
-//  START
-// ════════════════════════════════════════════
 init();
 </script>
 </body>
