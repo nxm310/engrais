@@ -52,7 +52,7 @@
   .clbl{font-family:'Syne',sans-serif;font-weight:700;font-size:.75rem;color:var(--blueb);text-transform:uppercase;letter-spacing:1px;white-space:nowrap;padding-bottom:2px}
   .cf{display:flex;flex-direction:column;gap:4px}
   .cf label{font-size:.68rem;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.8px}
-  .cf input{background:var(--bg2);border:1.5px solid var(--bdr);border-radius:var(--rs);color:var(--t1);font-family:'DM Sans',sans-serif;font-size:.88rem;font-weight:500;padding:7px 12px;min-width:88px;width:88px;transition:all .2s}
+  .cf input{background:var(--bg2);border:1.5px solid var(--bdr);border-radius:var(--rs);color:var(--t1);font-family:'DM Sans',sans-serif;font-size:1rem;font-weight:500;padding:7px 12px;min-width:88px;width:88px;transition:all .2s}
   .cf input.wide{min-width:180px;width:180px}
   .cf input:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px var(--blueg)}
   .cf input::placeholder{color:var(--t3)}
@@ -78,7 +78,7 @@
   /* SELECT */
   .selrow{margin-bottom:20px}
   .selrow label{display:block;font-size:.7rem;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px}
-  .selrow select{background:var(--bg2);border:1.5px solid var(--bdr);border-radius:var(--rs);color:var(--t1);font-family:'DM Sans',sans-serif;font-size:.95rem;font-weight:500;padding:10px 40px 10px 13px;max-width:400px;width:100%;cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236ba3ff' stroke-width='2.5'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;transition:all .2s}
+  .selrow select{background:var(--bg2);border:1.5px solid var(--bdr);border-radius:var(--rs);color:var(--t1);font-family:'DM Sans',sans-serif;font-size:1rem;font-weight:500;padding:10px 40px 10px 13px;max-width:400px;width:100%;cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236ba3ff' stroke-width='2.5'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;transition:all .2s}
   .selrow select:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px var(--blueg)}
   .selrow select option{background:var(--bg2)}
 
@@ -182,27 +182,92 @@
   .toast.info{border-left:3px solid var(--blue)}
   .toast.warn{border-left:3px solid var(--amber)}
 
-  @media(max-width:600px){
-    main{padding:16px 13px}
-    .tdiv{display:none}
+  /* ── RESPONSIVE MOBILE (iPhone & petits écrans) ── */
+  @media(max-width:680px){
+
+    /* Header */
+    .hi{padding:0 14px;height:52px}
+    .logo{font-size:1rem}
+    .nb{font-size:.8rem;padding:6px 11px}
+
+    /* Campagne bar : tout en colonne centré */
     .cinn{
       flex-direction:column;
       align-items:center;
       text-align:center;
       gap:10px;
-      padding:14px 16px;
+      padding:14px 14px 16px;
     }
-    .cinn-fields{
-      grid-template-columns:1fr 1fr;
-      width:100%;
-      max-width:340px;
-      justify-items:center;
-    }
-    .cf{align-items:center;width:100%}
-    .cf input,.cf input.wide{width:100%;min-width:unset}
     .clbl{width:100%;text-align:center}
-    .sac-panel{margin-left:0;width:100%;max-width:340px}
-    .sac-cell{flex:1}
+    .cinn-fields{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px 12px;
+      width:100%;
+      max-width:360px;
+    }
+    .cf{align-items:flex-start;width:100%}
+    .cf input,
+    .cf input.wide{
+      width:100%;
+      min-width:unset;
+      max-width:100%;
+      font-size:1rem;       /* évite le zoom iOS sur focus */
+      padding:10px 12px;
+    }
+    /* Panneau sacs : pleine largeur, 3 cases */
+    .sac-panel{
+      margin-left:0;
+      width:100%;
+      max-width:360px;
+    }
+    .sac-cell{flex:1;padding:8px 10px}
+    .sac-cell-lbl{font-size:.58rem}
+    .sac-cell-val{font-size:1.1rem}
+
+    /* Main */
+    main{padding:14px 12px}
+
+    /* Grille cards en 1 colonne */
+    .cgrid{grid-template-columns:1fr}
+
+    /* Total strip : 2 colonnes sur mobile */
+    .tstrip{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:14px;
+      padding:16px;
+    }
+    .tdiv{display:none}
+    .titem{padding:4px 0}
+    .tval{font-size:1.6rem}
+
+    /* Sacs réels card : colonne */
+    .srcard{flex-direction:column;align-items:flex-start;gap:12px}
+    .srinput-wrap{width:100%;justify-content:space-between}
+    .srinput{width:120px;font-size:1.1rem;padding:10px}
+
+    /* Validate row : colonne */
+    .vrow{flex-direction:column;align-items:stretch;gap:12px}
+    .cbwrap{justify-content:flex-start}
+    .btn-p{width:100%;justify-content:center;padding:13px;font-size:.95rem}
+
+    /* Historique header */
+    .htop{flex-direction:column;align-items:stretch}
+    .htop div{display:flex;gap:8px}
+    .htop .btn{flex:1;justify-content:center}
+
+    /* History cards */
+    .hhead{flex-direction:column;align-items:flex-start}
+    .hrow{flex-direction:column;gap:6px}
+    .hfoot{justify-content:stretch;gap:6px}
+    .hfoot .btn{flex:1;justify-content:center;font-size:.78rem}
+
+    /* Select pleine largeur */
+    .selrow select{max-width:100%}
+
+    /* Progression */
+    .prog{padding:11px 13px}
   }
 </style>
 </head>
