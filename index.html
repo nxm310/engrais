@@ -51,8 +51,8 @@
   .clbl{font-family:'Syne',sans-serif;font-weight:700;font-size:.75rem;color:var(--blueb);text-transform:uppercase;letter-spacing:1px;white-space:nowrap;padding-bottom:2px}
   .cf{display:flex;flex-direction:column;gap:4px}
   .cf label{font-size:.68rem;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.8px}
-  .cf input{background:var(--bg2);border:1.5px solid var(--bdr);border-radius:var(--rs);color:var(--t1);font-family:'DM Sans',sans-serif;font-size:.88rem;font-weight:500;padding:7px 12px;min-width:145px;transition:all .2s}
-  .cf input[type=number]{min-width:88px}
+  .cf input{background:var(--bg2);border:1.5px solid var(--bdr);border-radius:var(--rs);color:var(--t1);font-family:'DM Sans',sans-serif;font-size:.88rem;font-weight:500;padding:7px 12px;min-width:88px;width:88px;transition:all .2s}
+  .cf input.wide{min-width:180px;width:180px}
   .cf input:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px var(--blueg)}
   .cf input::placeholder{color:var(--t3)}
   .sac-box{margin-left:auto;background:var(--bg3);border:1.5px solid var(--bdr2);border-radius:var(--rs);padding:8px 16px;display:flex;align-items:center;gap:14px;white-space:nowrap}
@@ -195,10 +195,10 @@
 <div class="cbar">
   <div class="cinn">
     <span class="clbl">📅 Campagne</span>
-    <div class="cf"><label>Date</label><input type="date" id="g-date"></div>
-    <div class="cf"><label>Référence engrais</label><input type="text" id="g-ref" placeholder="ex: NPK 15-15-15 lot A42…"></div>
-    <div class="cf"><label>Qté/ha (kg)</label><input type="number" id="g-qte" value="1000" min="1" oninput="recalc()"></div>
-    <div class="cf"><label>Sacs totaux campagne</label><input type="number" id="g-sacs-tot" placeholder="ex: 200" min="0" oninput="updateSacBox()"></div>
+    <div class="cf"><label>Date</label><input type="date" id="g-date" class="wide"></div>
+    <div class="cf"><label>Référence engrais</label><input type="text" id="g-ref" class="wide" placeholder="ex: NPK 15-15-15…"></div>
+    <div class="cf"><label>Qté/ha (kg)</label><input type="number" id="g-qte" value="1000" min="1" oninput="recalc();saveCampagne()"></div>
+    <div class="cf"><label>Sacs totaux campagne</label><input type="number" id="g-sacs-tot" placeholder="—" min="0" oninput="updateSacBox();saveCampagne()"></div>
     <div class="sac-box" id="sac-box" style="display:none">
       <div class="sac-box-lbl">Sacs restants<br><small style="font-size:.68rem;opacity:.6">campagne</small></div>
       <div class="sac-box-val" id="sac-rem">—</div>
@@ -287,16 +287,22 @@
   <section id="sec-historique" class="sec">
     <div class="htop">
       <h2>📋 Historique des passages</h2>
-      <button class="btn btn-t" onclick="exportAll()">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-        Exporter tout PDF
-      </button>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn btn-t" onclick="exportAll()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Exporter tout PDF
+        </button>
+        <button class="btn btn-d" onclick="askDelAll()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+          Tout supprimer
+        </button>
+      </div>
     </div>
     <div id="hlist"></div>
   </section>
 </main>
 
-<!-- MODAL -->
+<!-- MODAL supprimer un -->
 <div class="ov" id="dmod">
   <div class="modal">
     <h3>🗑️ Supprimer l'entrée ?</h3>
@@ -304,6 +310,17 @@
     <div class="mbtns">
       <button class="btn btn-g" onclick="closeMod()">Annuler</button>
       <button class="btn btn-d" onclick="confirmDel()">Supprimer</button>
+    </div>
+  </div>
+</div>
+<!-- MODAL supprimer tout -->
+<div class="ov" id="dmodall">
+  <div class="modal">
+    <h3>🗑️ Supprimer tout l'historique ?</h3>
+    <p>Cette action est irréversible. <strong>Toutes</strong> les entrées de l'historique seront définitivement supprimées.</p>
+    <div class="mbtns">
+      <button class="btn btn-g" onclick="closeModAll()">Annuler</button>
+      <button class="btn btn-d" onclick="confirmDelAll()">Tout supprimer</button>
     </div>
   </div>
 </div>
@@ -331,6 +348,8 @@ const PAR = [
   {nom:"Poncelet",              cul:"vigne champenoise",surface:0.26,lon:130,rg:21}
 ];
 const SAC=25;
+const CAMP_KEY='vicon_camp';
+const HIST_KEY='vicon3';
 let cur=null,done=false,delId=null;
 
 function r2(v){return Math.round(v*100)/100}
@@ -342,25 +361,59 @@ function calcP(p,q){
   return{tk,ts,k9,s9:r2(k9/SAC),k11,s11:r2(k11/SAC)};
 }
 
-function init(){
-  document.getElementById('g-date').valueAsDate=new Date();
-  const s=document.getElementById('psel');
-  PAR.forEach((p,i)=>{const o=document.createElement('option');o.value=i;o.textContent=p.nom;s.appendChild(o)});
-  updProg();updateSacBox();renderH();
+/* ── PERSISTANCE CAMPAGNE ── */
+function saveCampagne(){
+  const data={
+    ref: document.getElementById('g-ref').value,
+    qte: document.getElementById('g-qte').value,
+    sacsTot: document.getElementById('g-sacs-tot').value,
+    date: document.getElementById('g-date').value
+  };
+  localStorage.setItem(CAMP_KEY, JSON.stringify(data));
 }
 
+function loadCampagne(){
+  try{
+    const data=JSON.parse(localStorage.getItem(CAMP_KEY)||'{}');
+    if(data.ref)  document.getElementById('g-ref').value=data.ref;
+    if(data.qte)  document.getElementById('g-qte').value=data.qte;
+    if(data.sacsTot) document.getElementById('g-sacs-tot').value=data.sacsTot;
+    if(data.date) document.getElementById('g-date').value=data.date;
+    else document.getElementById('g-date').valueAsDate=new Date();
+  }catch{
+    document.getElementById('g-date').valueAsDate=new Date();
+  }
+}
+
+/* ── INIT ── */
+function init(){
+  loadCampagne();
+  // attach save to ref and date too
+  document.getElementById('g-ref').addEventListener('input', saveCampagne);
+  document.getElementById('g-date').addEventListener('input', saveCampagne);
+
+  const s=document.getElementById('psel');
+  PAR.forEach((p,i)=>{const o=document.createElement('option');o.value=i;o.textContent=p.nom;s.appendChild(o)});
+  updProg();
+  updateSacBox();
+  renderH();
+}
+
+/* ── SAC BOX : soustrait sacs réels de l'historique ── */
 function updateSacBox(){
   const tot=parseFloat(document.getElementById('g-sacs-tot').value);
   const box=document.getElementById('sac-box');
   if(!tot||isNaN(tot)){box.style.display='none';return}
   box.style.display='flex';
-  const used=getH().reduce((a,e)=>a+(parseFloat(e.sacsReels)||0),0);
+  // somme des sacs réels enregistrés dans l'historique
+  const used=getH().reduce((a,e)=>a+(parseFloat(e.sr)||0),0);
   const rem=r2(tot-used);
   const el=document.getElementById('sac-rem');
   el.textContent=rem;
-  el.style.color=rem<0?'var(--red)':rem<5?'var(--red)':'var(--amber)';
+  el.style.color=(rem<0||rem<5)?'var(--red)':'var(--amber)';
 }
 
+/* ── CHARGEMENT FICHE ── */
 function loadP(){
   const v=document.getElementById('psel').value;
   if(v===''){document.getElementById('fiche').style.display='none';cur=null;return}
@@ -401,6 +454,7 @@ function onSR(){
 
 function toggleDone(){done=!done;document.getElementById('cbox').classList.toggle('on',done)}
 
+/* ── ENREGISTREMENT — efface la fiche après validation ── */
 function saveE(){
   if(cur===null)return;
   const p=PAR[cur];const q=getQte();const c=calcP(p,q);
@@ -416,13 +470,21 @@ function saveE(){
     tk:c.tk,ts:c.ts,k9:c.k9,s9:c.s9,k11:c.k11,s11:c.s11
   };
   const h=getH();h.unshift(e);saveH(h);
+
+  // Réinitialise et masque la fiche
+  cur=null;done=false;
+  document.getElementById('psel').value='';
+  document.getElementById('fiche').style.display='none';
+  document.getElementById('sr-input').value='';
+  document.getElementById('cbox').classList.remove('on');
+
   renderH();updProg();updateSacBox();
-  toast('✅ Enregistré dans l\'historique','success');
+  toast('✅ Enregistré — parcelle effacée','success');
 }
 
-function getH(){try{return JSON.parse(localStorage.getItem('vicon3')||'[]')}catch{return[]}}
-function saveH(h){localStorage.setItem('vicon3',JSON.stringify(h))}
-
+/* ── HISTORIQUE ── */
+function getH(){try{return JSON.parse(localStorage.getItem(HIST_KEY)||'[]')}catch{return[]}}
+function saveH(h){localStorage.setItem(HIST_KEY,JSON.stringify(h))}
 function fmtD(d){if(!d)return'—';const[y,m,j]=d.split('-');return`${j}/${m}/${y}`}
 
 function renderH(){
@@ -451,8 +513,6 @@ function renderH(){
         <div class="hrow">
           <div class="hi2 bl">Total calculé : <strong>${e.tk} kg</strong> / <strong>${e.ts} sacs</strong></div>
           <div class="hi2 am">Sacs réels : <strong contenteditable="true" class="editable" onblur="updFN(${e.id},'sr',this.textContent)">${e.sr}</strong></div>
-          <div class="hi2">Desc. 9R : <strong>${e.k9} kg</strong> (${e.s9} sacs)</div>
-          <div class="hi2">Desc. 11R : <strong>${e.k11} kg</strong> (${e.s11} sacs)</div>
         </div>
         <div class="hfoot">
           <button class="btn btn-g btn-sm" onclick="togDoneH(${e.id})">${e.done?'↩ Non traitée':'✅ Marquer traitée'}</button>
@@ -463,20 +523,30 @@ function renderH(){
     </div>`).join('');
 }
 
-function updF(id,k,v){const h=getH();const e=h.find(x=>x.id===id);if(e){e[k]=v.trim();saveH(h);updateSacBox()}}
+function updF(id,k,v){const h=getH();const e=h.find(x=>x.id===id);if(e){e[k]=v.trim();saveH(h);renderH();updateSacBox()}}
 function updFN(id,k,v){const h=getH();const e=h.find(x=>x.id===id);if(e){const n=parseFloat(v);if(!isNaN(n)){e[k]=n;saveH(h);updateSacBox()}}}
 function togDoneH(id){const h=getH();const e=h.find(x=>x.id===id);if(e){e.done=!e.done;saveH(h);renderH();updProg()}}
 
+/* ── SUPPRESSION ── */
 function askDel(id){delId=id;document.getElementById('dmod').classList.add('on')}
 function closeMod(){document.getElementById('dmod').classList.remove('on');delId=null}
 function confirmDel(){if(!delId)return;saveH(getH().filter(x=>x.id!==delId));renderH();updProg();updateSacBox();closeMod();toast('🗑 Supprimé','info')}
 document.getElementById('dmod').addEventListener('click',e=>{if(e.target===document.getElementById('dmod'))closeMod()})
 
+function askDelAll(){document.getElementById('dmodall').classList.add('on')}
+function closeModAll(){document.getElementById('dmodall').classList.remove('on')}
+function confirmDelAll(){saveH([]);renderH();updProg();updateSacBox();closeModAll();toast('🗑 Historique effacé','info')}
+document.getElementById('dmodall').addEventListener('click',e=>{if(e.target===document.getElementById('dmodall'))closeModAll()})
+
+/* ── PROGRESSION — basée sur l'historique ── */
 function updProg(){
-  const done=new Set(getH().filter(e=>e.done).map(e=>e.nom)).size;
-  const pct=Math.round(done/PAR.length*100);
+  // Une parcelle est "traitée" si au moins une entrée done=true dans l'historique
+  const donePar=new Set(getH().filter(e=>e.done).map(e=>e.nom));
+  const total=PAR.length;
+  const done=donePar.size;
+  const pct=Math.round(done/total*100);
   document.getElementById('pbar').style.width=pct+'%';
-  document.getElementById('plbl').textContent=`${done} / ${PAR.length} parcelles traitées`;
+  document.getElementById('plbl').textContent=`${done} / ${total} parcelles traitées`;
 }
 
 /* ── PDF ── */
@@ -487,7 +557,6 @@ function genPDF(entries,fn){
   const{jsPDF}=window.jspdf;
   const doc=new jsPDF({unit:'mm',format:'a4'});
   const W=210,M=14;let y=0;
-  // Header
   doc.setFillColor(13,21,38);doc.rect(0,0,W,28,'F');
   doc.setFillColor(59,122,246);doc.rect(0,28,W,2,'F');
   doc.setTextColor(232,237,248);doc.setFont('helvetica','bold');doc.setFontSize(15);
@@ -499,7 +568,6 @@ function genPDF(entries,fn){
 
   entries.forEach(e=>{
     if(y>252){doc.addPage();y=14}
-    // Bloc titre
     doc.setFillColor(22,32,64);doc.roundedRect(M,y,W-2*M,10,2,2,'F');
     doc.setTextColor(232,237,248);doc.setFont('helvetica','bold');doc.setFontSize(10.5);
     doc.text(e.nom,M+4,y+7);
@@ -507,7 +575,6 @@ function genPDF(entries,fn){
     doc.setTextColor(e.done?34:245,e.done?197:166,e.done?94:35);
     doc.text(e.done?'✓ Traitée':'En attente',W-M-3,y+7,{align:'right'});
     y+=13;
-    // Meta
     doc.setTextColor(86,106,135);doc.setFont('helvetica','normal');doc.setFontSize(8);
     doc.text(`Date : ${fmtD(e.date)}`,M,y);
     doc.text(`Réf. engrais : ${e.ref||'—'}`,M+36,y);
@@ -515,25 +582,23 @@ function genPDF(entries,fn){
     y+=5.5;
     doc.text(`Surface : ${e.surface} ha    Rangs : ${e.rg} × ${e.lon} m`,M,y);
     y+=9;
-    // Tableau
+    // Tableau simplifié (sans 9/11 rangs)
     const rows=[
-      ['9 rangs',`${e.s9} sacs`,`${e.k9} kg`],
-      ['11 rangs',`${e.s11} sacs`,`${e.k11} kg`],
       ['Total calculé',`${e.ts} sacs`,`${e.tk} kg`],
       ['Sacs réels utilisés',`${e.sr} sacs`,`${r2(e.sr*SAC)} kg`],
     ];
-    const cw=[68,42,38],sx=M;
-    doc.setFillColor(59,122,246);doc.rect(sx,y,148,7,'F');
+    const cw=[74,42,38],sx=M;
+    doc.setFillColor(59,122,246);doc.rect(sx,y,154,7,'F');
     doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(7);
-    ['Configuration','Sacs (25 kg)','Kg'].forEach((h,i)=>doc.text(h,sx+cw.slice(0,i).reduce((a,b)=>a+b,0)+3,y+5));
+    ['','Sacs (25 kg)','Kg'].forEach((h,i)=>doc.text(h,sx+cw.slice(0,i).reduce((a,b)=>a+b,0)+3,y+5));
     y+=7;
     rows.forEach((row,ri)=>{
-      const isT=ri===2,isR=ri===3;
-      const bg=isR?[28,42,78]:isT?[17,24,39]:(ri%2===0?[26,34,60]:[22,30,52]);
-      doc.setFillColor(...bg);doc.rect(sx,y,148,7,'F');
-      doc.setFont('helvetica',(isT||isR)?'bold':'normal');
-      const tc=isR?[245,166,35]:isT?[107,163,255]:[232,237,248];
-      doc.setTextColor(...tc);doc.setFontSize(8);
+      const isR=ri===1;
+      doc.setFillColor(...(isR?[28,42,78]:[22,30,52]));
+      doc.rect(sx,y,154,7,'F');
+      doc.setFont('helvetica',isR?'bold':'normal');
+      doc.setTextColor(...(isR?[245,166,35]:[107,163,255]));
+      doc.setFontSize(8);
       row.forEach((cell,ci)=>doc.text(cell,sx+cw.slice(0,ci).reduce((a,b)=>a+b,0)+3,y+5));
       y+=7;
     });
