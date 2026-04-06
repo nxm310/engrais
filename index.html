@@ -202,18 +202,25 @@
     .cinn-fields{
       display:grid;
       grid-template-columns:1fr 1fr;
-      gap:10px 12px;
+      gap:10px 10px;
       width:100%;
       max-width:360px;
     }
-    .cf{align-items:flex-start;width:100%}
+    .cf{align-items:stretch;width:100%;min-width:0;overflow:hidden}
     .cf input,
     .cf input.wide{
-      width:100%;
-      min-width:unset;
-      max-width:100%;
-      font-size:1rem;       /* évite le zoom iOS sur focus */
-      padding:10px 12px;
+      display:block;
+      width:100% !important;
+      min-width:0 !important;
+      max-width:100% !important;
+      font-size:1rem;
+      padding:10px 8px;
+      box-sizing:border-box;
+    }
+    /* iOS date input natif — forcer la même taille */
+    input[type=date]{
+      -webkit-appearance:none;
+      appearance:none;
     }
     /* Panneau sacs : pleine largeur, 3 cases */
     .sac-panel{
