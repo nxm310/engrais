@@ -55,9 +55,14 @@
   .cf input.wide{min-width:180px;width:180px}
   .cf input:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px var(--blueg)}
   .cf input::placeholder{color:var(--t3)}
-  .sac-box{margin-left:auto;background:var(--bg3);border:1.5px solid var(--bdr2);border-radius:var(--rs);padding:8px 16px;display:flex;align-items:center;gap:14px;white-space:nowrap}
-  .sac-box-lbl{font-size:.76rem;color:var(--t3);font-weight:500;line-height:1.4}
-  .sac-box-val{font-family:'Syne',sans-serif;font-size:1.35rem;font-weight:800;color:var(--amber)}
+  .sac-panel{margin-left:auto;display:flex;align-items:stretch;gap:0;border-radius:var(--rs);overflow:hidden;border:1.5px solid var(--bdr2);white-space:nowrap}
+  .sac-cell{background:var(--bg3);padding:8px 16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-width:90px}
+  .sac-cell+.sac-cell{border-left:1px solid var(--bdr2)}
+  .sac-cell.delta-pos{background:rgba(34,197,94,0.08)}
+  .sac-cell.delta-neg{background:rgba(240,71,71,0.08)}
+  .sac-cell-lbl{font-size:.67rem;color:var(--t3);font-weight:600;text-transform:uppercase;letter-spacing:.6px}
+  .sac-cell-val{font-family:'Syne',sans-serif;font-size:1.28rem;font-weight:800}
+  .sac-cell-sub{font-size:.62rem;color:var(--t3);margin-top:1px}
 
   /* MAIN */
   main{max-width:1060px;margin:0 auto;padding:26px 22px}
@@ -176,14 +181,29 @@
   .toast.info{border-left:3px solid var(--blue)}
   .toast.warn{border-left:3px solid var(--amber)}
 
-  @media(max-width:600px){main{padding:16px 13px}.cinn{gap:10px}.sac-box{margin-left:0;width:100%;justify-content:space-between}.tdiv{display:none}}
+  @media(max-width:600px){
+    main{padding:16px 13px}
+    .tdiv{display:none}
+    .cinn{
+      flex-direction:column;
+      align-items:center;
+      text-align:center;
+      gap:12px;
+      padding:16px 16px;
+    }
+    .cf{align-items:center;width:100%}
+    .cf input,.cf input.wide{width:100%;min-width:unset;max-width:320px}
+    .clbl{width:100%;text-align:center}
+    .sac-panel{margin-left:0;width:100%;max-width:340px}
+    .sac-cell{flex:1}
+  }
 </style>
 </head>
 <body>
 
 <header>
   <div class="hi">
-    <div class="logo">🌿 VICON Engrais <span class="lchip">SCEV</span></div>
+    <div class="logo">🌿 VICON Engrais</div>
     <nav>
       <button class="nb on" onclick="showSec('parcelle',this)">📍 Parcelles</button>
       <button class="nb" onclick="showSec('historique',this)">📋 Historique</button>
@@ -199,9 +219,22 @@
     <div class="cf"><label>Référence engrais</label><input type="text" id="g-ref" class="wide" placeholder="ex: NPK 15-15-15…"></div>
     <div class="cf"><label>Qté/ha (kg)</label><input type="number" id="g-qte" value="1000" min="1" oninput="recalc();saveCampagne()"></div>
     <div class="cf"><label>Sacs totaux campagne</label><input type="number" id="g-sacs-tot" placeholder="—" min="0" oninput="updateSacBox();saveCampagne()"></div>
-    <div class="sac-box" id="sac-box" style="display:none">
-      <div class="sac-box-lbl">Sacs restants<br><small style="font-size:.68rem;opacity:.6">campagne</small></div>
-      <div class="sac-box-val" id="sac-rem">—</div>
+    <div class="sac-panel" id="sac-box" style="display:none">
+      <div class="sac-cell">
+        <div class="sac-cell-lbl">Sacs utilisés</div>
+        <div class="sac-cell-val" id="sac-used" style="color:var(--blueb)">—</div>
+        <div class="sac-cell-sub">réels cumulés</div>
+      </div>
+      <div class="sac-cell">
+        <div class="sac-cell-lbl">Sacs restants</div>
+        <div class="sac-cell-val" id="sac-rem" style="color:var(--amber)">—</div>
+        <div class="sac-cell-sub">sur le stock</div>
+      </div>
+      <div class="sac-cell" id="sac-delta-cell">
+        <div class="sac-cell-lbl">Écart calculés/réels</div>
+        <div class="sac-cell-val" id="sac-delta">—</div>
+        <div class="sac-cell-sub" id="sac-delta-sub">avance / retard</div>
+      </div>
     </div>
   </div>
 </div>
@@ -399,18 +432,35 @@ function init(){
   renderH();
 }
 
-/* ── SAC BOX : soustrait sacs réels de l'historique ── */
+/* ── SAC BOX : 3 cases — utilisés / restants / écart calculés vs réels ── */
 function updateSacBox(){
   const tot=parseFloat(document.getElementById('g-sacs-tot').value);
   const box=document.getElementById('sac-box');
   if(!tot||isNaN(tot)){box.style.display='none';return}
   box.style.display='flex';
-  // somme des sacs réels enregistrés dans l'historique
-  const used=getH().reduce((a,e)=>a+(parseFloat(e.sr)||0),0);
+
+  const h=getH();
+  // Sacs réels cumulés (enregistrés)
+  const used=r2(h.reduce((a,e)=>a+(parseFloat(e.sr)||0),0));
+  // Sacs calculés cumulés (théoriques)
+  const calc=r2(h.reduce((a,e)=>a+(parseFloat(e.ts)||0),0));
+  // Restants = stock - réels utilisés
   const rem=r2(tot-used);
-  const el=document.getElementById('sac-rem');
-  el.textContent=rem;
-  el.style.color=(rem<0||rem<5)?'var(--red)':'var(--amber)';
+  // Écart = calculés - réels (positif = économie, négatif = dépassement)
+  const delta=r2(calc-used);
+
+  document.getElementById('sac-used').textContent=used;
+  const remEl=document.getElementById('sac-rem');
+  remEl.textContent=rem;
+  remEl.style.color=(rem<0||rem<5)?'var(--red)':'var(--amber)';
+
+  const deltaEl=document.getElementById('sac-delta');
+  const deltaCell=document.getElementById('sac-delta-cell');
+  const deltaSub=document.getElementById('sac-delta-sub');
+  deltaEl.textContent=(delta>=0?'+':'')+delta;
+  deltaCell.className='sac-cell '+(delta>=0?'delta-pos':'delta-neg');
+  deltaEl.style.color=delta>=0?'var(--green)':'var(--red)';
+  deltaSub.textContent=delta>=0?'économie de sacs':'dépassement';
 }
 
 /* ── CHARGEMENT FICHE ── */
