@@ -47,7 +47,8 @@
 
   /* CAMPAGNE BAR */
   .cbar{background:var(--bg1);border-bottom:1px solid var(--bdr)}
-  .cinn{max-width:1060px;margin:0 auto;padding:13px 22px;display:flex;align-items:flex-end;gap:18px;flex-wrap:wrap}
+  .cinn{max-width:1060px;margin:0 auto;padding:10px 22px;display:flex;align-items:center;gap:12px 20px;flex-wrap:wrap}
+  .cinn-fields{display:grid;grid-template-columns:1fr 1fr;gap:8px 20px;align-items:end}
   .clbl{font-family:'Syne',sans-serif;font-weight:700;font-size:.75rem;color:var(--blueb);text-transform:uppercase;letter-spacing:1px;white-space:nowrap;padding-bottom:2px}
   .cf{display:flex;flex-direction:column;gap:4px}
   .cf label{font-size:.68rem;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.8px}
@@ -188,11 +189,17 @@
       flex-direction:column;
       align-items:center;
       text-align:center;
-      gap:12px;
-      padding:16px 16px;
+      gap:10px;
+      padding:14px 16px;
+    }
+    .cinn-fields{
+      grid-template-columns:1fr 1fr;
+      width:100%;
+      max-width:340px;
+      justify-items:center;
     }
     .cf{align-items:center;width:100%}
-    .cf input,.cf input.wide{width:100%;min-width:unset;max-width:320px}
+    .cf input,.cf input.wide{width:100%;min-width:unset}
     .clbl{width:100%;text-align:center}
     .sac-panel{margin-left:0;width:100%;max-width:340px}
     .sac-cell{flex:1}
@@ -215,10 +222,12 @@
 <div class="cbar">
   <div class="cinn">
     <span class="clbl">📅 Campagne</span>
-    <div class="cf"><label>Date</label><input type="date" id="g-date" class="wide"></div>
-    <div class="cf"><label>Référence engrais</label><input type="text" id="g-ref" class="wide" placeholder="ex: NPK 15-15-15…"></div>
-    <div class="cf"><label>Qté/ha (kg)</label><input type="number" id="g-qte" value="1000" min="1" oninput="recalc();saveCampagne()"></div>
-    <div class="cf"><label>Sacs totaux campagne</label><input type="number" id="g-sacs-tot" placeholder="—" min="0" oninput="updateSacBox();saveCampagne()"></div>
+    <div class="cinn-fields">
+      <div class="cf"><label>Date</label><input type="date" id="g-date" class="wide"></div>
+      <div class="cf"><label>Référence engrais</label><input type="text" id="g-ref" class="wide" placeholder="ex: NPK 15-15-15…"></div>
+      <div class="cf"><label>Qté/ha (kg)</label><input type="number" id="g-qte" value="1000" min="1" oninput="recalc();saveCampagne()"></div>
+      <div class="cf"><label>Sacs totaux campagne</label><input type="number" id="g-sacs-tot" placeholder="—" min="0" oninput="updateSacBox();saveCampagne()"></div>
+    </div>
     <div class="sac-panel" id="sac-box" style="display:none">
       <div class="sac-cell">
         <div class="sac-cell-lbl">Sacs utilisés</div>
@@ -231,9 +240,9 @@
         <div class="sac-cell-sub">sur le stock</div>
       </div>
       <div class="sac-cell" id="sac-delta-cell">
-        <div class="sac-cell-lbl">Écart calculés/réels</div>
+        <div class="sac-cell-lbl">Écart sacs</div>
         <div class="sac-cell-val" id="sac-delta">—</div>
-        <div class="sac-cell-sub" id="sac-delta-sub">avance / retard</div>
+        <div class="sac-cell-sub" id="sac-delta-sub">calculés / réels</div>
       </div>
     </div>
   </div>
