@@ -68,14 +68,14 @@ function toast(msg, type = 'info') {
 }
 
 // ── BUSINESS CALCULATIONS ──
-function calcP(p, targetQteHa) {
+function calcP(p, targetQteHa, rowsA = 9, rowsB = 11) {
   const tk = r2(p.surface * targetQteHa); // Total kg target
   const ts = r2(tk / BAG_WEIGHT);          // Total bags target
   
   // Formulas for 9 & 11 rows:
   // kg_descente = (targetQte * length * rowsCount) / 10000
-  const k9 = r2(targetQteHa * p.lon * 9 / 10000);
-  const k11 = r2(targetQteHa * p.lon * 11 / 10000);
+  const k9 = r2(targetQteHa * p.lon * rowsA / 10000);
+  const k11 = r2(targetQteHa * p.lon * rowsB / 10000);
   
   return {
     tk,
@@ -112,7 +112,9 @@ function loadState() {
         date: new Date().toISOString().slice(0, 10),
         ref: 'NPK 15-15-15',
         qte: 1000,
-        sacsTot: 100
+        sacsTot: 100,
+        rowsA: 9,
+        rowsB: 11
       };
       localStorage.setItem(KEYS.CAMPAIGNS, JSON.stringify(State.campaigns));
     }
@@ -172,6 +174,8 @@ function updateCampagneUI() {
   document.getElementById('g-ref').value = camp.ref || '';
   document.getElementById('g-qte').value = camp.qte || 1000;
   document.getElementById('g-sacs-tot').value = camp.sacsTot || '';
+  document.getElementById('g-rows-a').value = camp.rowsA || 9;
+  document.getElementById('g-rows-b').value = camp.rowsB || 11;
 
   updateStockBox();
 }
@@ -285,8 +289,13 @@ function renderParcelCard() {
   const p = State.parcels[State.currentParcelIndex];
   const camp = getActiveCamp();
   const targetQ = camp ? camp.qte : 1000;
+  const rowsA = camp ? (camp.rowsA || 9) : 9;
+  const rowsB = camp ? (camp.rowsB || 11) : 11;
   
-  const c = calcP(p, targetQ);
+  const c = calcP(p, targetQ, rowsA, rowsB);
+
+  document.getElementById('lbl-rows-a').textContent = `${rowsA} rangs`;
+  document.getElementById('lbl-rows-b').textContent = `${rowsB} rangs`;
 
   document.getElementById('f-nom').textContent = p.nom;
   document.getElementById('f-cul').textContent = p.cul;
@@ -312,7 +321,9 @@ function updateRealBagsOutput() {
   if (State.currentParcelIndex === null) return;
   const p = State.parcels[State.currentParcelIndex];
   const camp = getActiveCamp();
-  const c = calcP(p, camp ? camp.qte : 1000);
+  const rowsA = camp ? (camp.rowsA || 9) : 9;
+  const rowsB = camp ? (camp.rowsB || 11) : 11;
+  const c = calcP(p, camp ? camp.qte : 1000, rowsA, rowsB);
 
   const inputVal = document.getElementById('sr-input').value;
   const realBags = inputVal === '' ? c.ts : (parseFloat(inputVal) || c.ts);
@@ -333,7 +344,9 @@ function savePassage() {
   if (!camp) return;
 
   const q = parseFloat(camp.qte) || 1000;
-  const c = calcP(p, q);
+  const rowsA = camp.rowsA || 9;
+  const rowsB = camp.rowsB || 11;
+  const c = calcP(p, q, rowsA, rowsB);
   
   const inputVal = document.getElementById('sr-input').value;
   const sr = inputVal === '' ? c.ts : (parseFloat(inputVal) || c.ts);
@@ -356,7 +369,9 @@ function savePassage() {
     k9: c.k9,
     s9: c.s9,
     k11: c.k11,
-    s11: c.s11
+    s11: c.s11,
+    rowsA,
+    rowsB
   };
 
   // Add to start of history array
@@ -594,7 +609,9 @@ function saveCampaign() {
     date: new Date().toISOString().slice(0, 10),
     ref: activeCamp ? activeCamp.ref : 'NPK 15-15-15',
     qte: activeCamp ? activeCamp.qte : 1000,
-    sacsTot: activeCamp ? activeCamp.sacsTot : 100
+    sacsTot: activeCamp ? activeCamp.sacsTot : 100,
+    rowsA: activeCamp ? (activeCamp.rowsA || 9) : 9,
+    rowsB: activeCamp ? (activeCamp.rowsB || 11) : 11
   };
 
   State.campaigns[id] = newCamp;
@@ -1103,6 +1120,28 @@ function bindEvents() {
       camp.sacsTot = parseFloat(document.getElementById('g-sacs-tot').value) || '';
       saveState();
       updateStockBox();
+    }
+  });
+
+  document.getElementById('g-rows-a').addEventListener('input', () => {
+    const camp = getActiveCamp();
+    if (camp) {
+      camp.rowsA = parseInt(document.getElementById('g-rows-a').value) || 9;
+      saveState();
+      if (State.currentParcelIndex !== null) {
+        renderParcelCard();
+      }
+    }
+  });
+
+  document.getElementById('g-rows-b').addEventListener('input', () => {
+    const camp = getActiveCamp();
+    if (camp) {
+      camp.rowsB = parseInt(document.getElementById('g-rows-b').value) || 11;
+      saveState();
+      if (State.currentParcelIndex !== null) {
+        renderParcelCard();
+      }
     }
   });
 

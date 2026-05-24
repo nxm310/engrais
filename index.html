@@ -66,6 +66,14 @@
           <label>Budget sacs total</label>
           <input type="number" id="g-sacs-tot" placeholder="—" min="0" style="width: 90px;">
         </div>
+        <div class="form-group">
+          <label>Rangs Machine A</label>
+          <input type="number" id="g-rows-a" value="9" min="1" style="width: 90px;">
+        </div>
+        <div class="form-group">
+          <label>Rangs Machine B</label>
+          <input type="number" id="g-rows-b" value="11" min="1" style="width: 90px;">
+        </div>
       </div>
 
       <!-- Real stock calculations (toggled in JS) -->
@@ -158,12 +166,12 @@
                 </thead>
                 <tbody>
                   <tr>
-                    <td><span class="chip blue">9 rangs</span></td>
+                    <td><span class="chip blue" id="lbl-rows-a">9 rangs</span></td>
                     <td id="d9s">—</td>
                     <td id="d9k">—</td>
                   </tr>
                   <tr>
-                    <td><span class="chip teal">11 rangs</span></td>
+                    <td><span class="chip teal" id="lbl-rows-b">11 rangs</span></td>
                     <td id="d11s">—</td>
                     <td id="d11k">—</td>
                   </tr>
