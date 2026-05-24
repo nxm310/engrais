@@ -1158,8 +1158,8 @@ dialog[open]::backdrop {
   }
   
   .nav-btn {
-    font-size: 0.8rem;
-    padding: 6px 12px;
+    font-size: 0.78rem;
+    padding: 6px 10px;
   }
   
   .campagne-container {
@@ -1198,12 +1198,14 @@ dialog[open]::backdrop {
   
   .progress-container {
     padding: 12px 14px;
+    margin-bottom: 28px;
   }
   
   .select-row {
     flex-direction: column;
     align-items: stretch;
     gap: 12px;
+    margin-bottom: 28px;
   }
   
   .select-wrap {
@@ -1216,6 +1218,12 @@ dialog[open]::backdrop {
   
   .card-grid {
     grid-template-columns: 1fr;
+    gap: 20px;
+    margin-bottom: 28px;
+  }
+  
+  .card {
+    padding: 16px;
   }
   
   .total-strip {
@@ -1223,6 +1231,7 @@ dialog[open]::backdrop {
     grid-template-columns: 1fr 1fr;
     gap: 16px;
     padding: 16px;
+    margin-bottom: 28px;
   }
   
   .total-divider {
@@ -1233,6 +1242,8 @@ dialog[open]::backdrop {
     flex-direction: column;
     align-items: stretch;
     gap: 14px;
+    padding: 16px;
+    margin-bottom: 28px;
   }
   
   .real-bags-input-wrap {
@@ -1257,6 +1268,8 @@ dialog[open]::backdrop {
   .histo-top {
     flex-direction: column;
     align-items: stretch;
+    gap: 12px;
+    margin-bottom: 28px;
   }
   
   .histo-actions {
@@ -1270,27 +1283,105 @@ dialog[open]::backdrop {
   }
   
   .history-card-head {
-    padding: 14px 16px;
+    padding: 12px 14px;
     flex-direction: column;
     align-items: flex-start;
+    gap: 8px;
   }
   
   .history-card-body {
-    padding: 14px 16px;
+    padding: 14px 14px;
   }
   
   .history-card-row {
     flex-direction: column;
     gap: 8px;
+    margin-bottom: 12px;
   }
   
   .history-card-foot {
     justify-content: stretch;
+    gap: 8px;
+    padding-top: 12px;
   }
   
   .history-card-foot .btn {
     flex: 1;
-    font-size: 0.78rem;
-    padding: 8px;
+    font-size: 0.76rem;
+    padding: 8px 6px;
   }
 }
+
+/* Specific iPhone Portrait Fixes (width <= 480px) */
+@media (max-width: 480px) {
+  .logo {
+    font-size: 1rem;
+  }
+  
+  .header-container {
+    padding: 0 12px;
+  }
+  
+  .nav-btn {
+    font-size: 0.72rem;
+    padding: 5px 8px;
+  }
+
+  .campagne-fields {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  
+  /* Stack Stock Indicators vertically to prevent any overflow */
+  .stock-panel {
+    display: grid;
+    grid-template-columns: 1fr;
+    border-radius: var(--radius-md);
+  }
+  
+  .stock-cell {
+    padding: 10px 14px;
+  }
+  
+  .stock-cell + .stock-cell {
+    border-left: none;
+    border-top: 1px solid rgba(59, 122, 246, 0.2);
+  }
+  
+  /* Make History and Admin cards perfectly fit without stretching */
+  .history-card-body {
+    padding: 12px;
+  }
+  
+  .history-card-head {
+    padding: 12px;
+  }
+  
+  /* Stack actions inside history list vertically to avoid squishing */
+  .history-card-foot {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    width: 100%;
+  }
+  
+  .history-card-foot .btn {
+    width: 100% !important;
+    justify-content: center;
+    font-size: 0.8rem;
+    padding: 10px;
+  }
+  
+  .histo-actions {
+    grid-template-columns: 1fr;
+  }
+  
+  /* Prevent editable elements from spilling over */
+  .editable {
+    max-width: 100%;
+    word-break: break-word;
+    display: inline;
+    padding: 1px 4px;
+  }
+}
+

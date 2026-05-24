@@ -221,15 +221,26 @@ function populateParcelSelector() {
   const previousVal = select.value;
   select.innerHTML = '<option value="">— Choisir une parcelle —</option>';
 
+  // Filter out parcels that are marked 'done' for the current campaign
+  const campLogs = State.history.filter(e => e.campaignId === State.activeCampaignId && e.done);
+  const doneParcelNames = new Set(campLogs.map(e => e.nom));
+
   State.parcels.forEach((p, idx) => {
+    if (doneParcelNames.has(p.nom)) return; // Exclude done parcels!
     const opt = document.createElement('option');
     opt.value = idx;
     opt.textContent = p.nom;
     select.appendChild(opt);
   });
 
-  if (previousVal !== '' && State.parcels[previousVal]) {
+  if (previousVal !== '' && State.parcels[previousVal] && !doneParcelNames.has(State.parcels[previousVal].nom)) {
     select.value = previousVal;
+  } else {
+    select.value = '';
+    if (document.getElementById('fiche')) {
+      document.getElementById('fiche').style.display = 'none';
+    }
+    State.currentParcelIndex = null;
   }
 }
 
@@ -256,15 +267,11 @@ function loadSelectedParcel() {
   if (val === '') {
     fiche.style.display = 'none';
     State.currentParcelIndex = null;
-    document.getElementById('btn-edit-parcel-trigger').style.display = 'none';
     return;
   }
 
   State.currentParcelIndex = parseInt(val);
   State.parcelMarkedDone = false;
-  
-  // Show edit action button for selected parcel
-  document.getElementById('btn-edit-parcel-trigger').style.display = 'inline-flex';
   
   document.getElementById('cbox').classList.remove('checked');
   document.getElementById('sr-input').value = '';
@@ -363,12 +370,12 @@ function savePassage() {
   document.getElementById('fiche').style.display = 'none';
   document.getElementById('sr-input').value = '';
   document.getElementById('cbox').classList.remove('checked');
-  document.getElementById('btn-edit-parcel-trigger').style.display = 'none';
 
   // Update overall UI
   updateStockBox();
   renderParcelProgress();
   renderHistoryList();
+  populateParcelSelector(); // Re-populate to filter out the completed parcel!
   
   toast('✅ Parcelle enregistrée dans l\'historique', 'success');
 }
@@ -603,10 +610,10 @@ function saveCampaign() {
   State.currentParcelIndex = null;
   document.getElementById('psel').value = '';
   document.getElementById('fiche').style.display = 'none';
-  document.getElementById('btn-edit-parcel-trigger').style.display = 'none';
 
   renderParcelProgress();
   renderHistoryList();
+  populateParcelSelector();
   
   toast(`📅 Nouvelle campagne "${name}" créée`, 'success');
 }
@@ -623,10 +630,10 @@ function changeActiveCampaign(id) {
   State.currentParcelIndex = null;
   document.getElementById('psel').value = '';
   document.getElementById('fiche').style.display = 'none';
-  document.getElementById('btn-edit-parcel-trigger').style.display = 'none';
 
   renderParcelProgress();
   renderHistoryList();
+  populateParcelSelector();
   
   toast(`Campagne commutée : ${State.campaigns[id].name}`, 'info');
 }
@@ -657,6 +664,7 @@ function deleteCurrentCampaign() {
   updateCampagneUI();
   renderParcelProgress();
   renderHistoryList();
+  populateParcelSelector();
   
   toast(`Campagne "${campToDelete.name}" supprimée`, 'info');
 }
@@ -728,8 +736,9 @@ function saveParcelForm() {
   
   // Refresh parcel selectors and progression details
   populateParcelSelector();
+  renderAdminParcelsList();
   
-  if (State.editingParcelIndex !== null) {
+  if (State.editingParcelIndex !== null && State.currentParcelIndex === State.editingParcelIndex) {
     // Re-trigger load to refresh values inside card
     loadSelectedParcel();
   }
@@ -749,13 +758,15 @@ function deleteCurrentParcelFromEditor() {
   
   closeParcelEditorDialog();
   
-  // Reset selected parcel since it's deleted
-  State.currentParcelIndex = null;
-  document.getElementById('psel').value = '';
-  document.getElementById('fiche').style.display = 'none';
-  document.getElementById('btn-edit-parcel-trigger').style.display = 'none';
+  // Reset selected parcel if it was the deleted one
+  if (State.currentParcelIndex === State.editingParcelIndex) {
+    State.currentParcelIndex = null;
+    document.getElementById('psel').value = '';
+    document.getElementById('fiche').style.display = 'none';
+  }
 
   populateParcelSelector();
+  renderAdminParcelsList();
   renderParcelProgress();
   
   toast(`🗑️ Parcelle "${p.nom}" supprimée`, 'info');
@@ -958,6 +969,79 @@ function exportCampaignCSV() {
   toast('📊 Données CSV téléchargées avec succès', 'success');
 }
 
+// ── DEDICATED PARCELS ADMIN LIST ──
+function renderAdminParcelsList() {
+  const listEl = document.getElementById('admin-parcels-list');
+  if (!listEl) return;
+
+  if (State.parcels.length === 0) {
+    listEl.innerHTML = `
+      <div class="empty-state" style="grid-column: 1 / -1;">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+          <line x1="9" y1="9" x2="15" y2="9"/>
+          <line x1="9" y1="13" x2="15" y2="13"/>
+          <line x1="9" y1="17" x2="13" y2="17"/>
+        </svg>
+        <p>Aucune parcelle configurée. Cliquez sur "Ajouter une parcelle" pour commencer.</p>
+      </div>`;
+    return;
+  }
+
+  listEl.innerHTML = State.parcels.map((p, idx) => `
+    <div class="card glass-panel" style="display: flex; flex-direction: column; justify-content: space-between; gap: 14px;">
+      <div>
+        <div class="card-title" style="margin-bottom: 12px; font-size: 0.95rem; color: var(--text-primary); font-family: 'Syne', sans-serif;">
+          📍 ${p.nom}
+        </div>
+        <div class="info-grid" style="gap: 8px 12px; grid-template-columns: 1fr 1fr;">
+          <div class="info-item">
+            <span class="info-lbl" style="font-size: 0.6rem;">Culture</span>
+            <span class="info-val" style="font-size: 0.85rem; font-weight:600;">${p.cul}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-lbl" style="font-size: 0.6rem;">Surface</span>
+            <span class="info-val" style="font-size: 0.85rem; font-weight:600;">${p.surface} ha</span>
+          </div>
+          <div class="info-item">
+            <span class="info-lbl" style="font-size: 0.6rem;">Longueur</span>
+            <span class="info-val" style="font-size: 0.85rem; font-weight:600;">${p.lon} m</span>
+          </div>
+          <div class="info-item">
+            <span class="info-lbl" style="font-size: 0.6rem;">Rangs</span>
+            <span class="info-val" style="font-size: 0.85rem; font-weight:600;">${p.rg}</span>
+          </div>
+        </div>
+      </div>
+      <div style="display: flex; gap: 8px; margin-top: 8px; border-top: 1px solid var(--border-light); padding-top: 12px;">
+        <button class="btn btn-glass btn-sm btn-edit-parcel-admin" data-index="${idx}" style="flex: 1; justify-content: center;">
+          ✏️ Modifier
+        </button>
+        <button class="btn btn-danger btn-sm btn-delete-parcel-admin" data-index="${idx}" style="flex: 1; justify-content: center;">
+          🗑️ Supprimer
+        </button>
+      </div>
+    </div>
+  `).join('');
+
+  // Bind event listeners
+  listEl.querySelectorAll('.btn-edit-parcel-admin').forEach(btn => {
+    btn.addEventListener('click', (evt) => {
+      const idx = parseInt(evt.currentTarget.getAttribute('data-index'));
+      State.currentParcelIndex = idx;
+      openParcelEditorDialog(true);
+    });
+  });
+
+  listEl.querySelectorAll('.btn-delete-parcel-admin').forEach(btn => {
+    btn.addEventListener('click', (evt) => {
+      const idx = parseInt(evt.currentTarget.getAttribute('data-index'));
+      State.editingParcelIndex = idx;
+      deleteCurrentParcelFromEditor();
+    });
+  });
+}
+
 // ── TAB SWITCHER ──
 function switchTab(tabId, triggerBtn) {
   // Toggle sections
@@ -970,6 +1054,8 @@ function switchTab(tabId, triggerBtn) {
 
   if (tabId === 'historique') {
     renderHistoryList();
+  } else if (tabId === 'admin-parcelles') {
+    renderAdminParcelsList();
   }
 }
 
@@ -1027,13 +1113,8 @@ function bindEvents() {
   // Selected parcel change
   document.getElementById('psel').addEventListener('change', loadSelectedParcel);
 
-  // Edit selected parcel trigger
-  document.getElementById('btn-edit-parcel-trigger').addEventListener('click', () => {
-    openParcelEditorDialog(true);
-  });
-
-  // Add new parcel trigger
-  document.getElementById('btn-add-parcel').addEventListener('click', () => {
+  // Add new parcel triggers (admin page and modal)
+  document.getElementById('btn-admin-add-parcel').addEventListener('click', () => {
     openParcelEditorDialog(false);
   });
 
@@ -1065,9 +1146,13 @@ function bindEvents() {
   // Nav tabs switching
   document.getElementById('tab-btn-parcelle').addEventListener('click', (evt) => {
     switchTab('parcelle', evt.currentTarget);
+    populateParcelSelector(); // Refreshes to make sure done parcels are filtered
   });
   document.getElementById('tab-btn-historique').addEventListener('click', (evt) => {
     switchTab('historique', evt.currentTarget);
+  });
+  document.getElementById('tab-btn-admin-parcelles').addEventListener('click', (evt) => {
+    switchTab('admin-parcelles', evt.currentTarget);
   });
 }
 
@@ -1081,6 +1166,7 @@ function initApp() {
   
   renderParcelProgress();
   renderHistoryList();
+  renderAdminParcelsList();
 }
 
 // Start application logic

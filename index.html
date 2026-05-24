@@ -23,11 +23,12 @@
   <header>
     <div class="header-container">
       <div class="logo">
-        🌿 VICON Engrais <span>Premium</span>
+        🌿 VICON Engrais
       </div>
       <nav>
         <button id="tab-btn-parcelle" class="nav-btn active">📍 Parcelles</button>
         <button id="tab-btn-historique" class="nav-btn">📋 Historique</button>
+        <button id="tab-btn-admin-parcelles" class="nav-btn">⚙️ Gérer Parcelles</button>
       </nav>
     </div>
   </header>
@@ -104,14 +105,9 @@
       <div class="select-row">
         <div class="select-wrap">
           <label>Sélectionner une parcelle</label>
-          <div style="display: flex; gap: 8px;">
-            <select id="psel">
-              <option value="">— Choisir une parcelle —</option>
-            </select>
-            <button id="btn-add-parcel" class="btn btn-primary" title="Créer une parcelle" style="padding: 10px 14px;">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            </button>
-          </div>
+          <select id="psel">
+            <option value="">— Choisir une parcelle —</option>
+          </select>
         </div>
       </div>
 
@@ -123,9 +119,6 @@
           <div class="card glass-panel">
             <div class="card-title">
               <span>📍 Informations</span>
-              <button id="btn-edit-parcel-trigger" class="btn btn-glass btn-sm" style="margin-left: auto; display: none;">
-                ✏️ Modifier la parcelle
-              </button>
             </div>
             <div class="info-grid">
               <div class="info-item">
@@ -255,6 +248,20 @@
 
       <!-- Main History Cards Container -->
       <div id="hlist" class="history-list"></div>
+    </section>
+
+    <!-- SECTION 3: ADMIN PARCELLES -->
+    <section id="sec-admin-parcelles" class="tab-section">
+      <div class="histo-top">
+        <h2>⚙️ Gestion des parcelles</h2>
+        <button id="btn-admin-add-parcel" class="btn btn-primary">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Ajouter une parcelle
+        </button>
+      </div>
+      
+      <!-- List of existing parcels -->
+      <div id="admin-parcels-list" class="card-grid" style="margin-top: 10px;"></div>
     </section>
 
   </main>
