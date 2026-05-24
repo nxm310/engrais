@@ -1,761 +1,345 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VICON — Gestion Engrais</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<style>
-  :root {
-    --bg0: #080d18;
-    --bg1: #0d1526;
-    --bg2: #111d33;
-    --bg3: #162040;
-    --bg4: #1c2a4e;
-    --bdr: rgba(56,122,246,0.14);
-    --bdr2: rgba(56,122,246,0.3);
-    --blue: #3b7af6;
-    --blueb: #6ba3ff;
-    --blueg: rgba(59,122,246,0.3);
-    --teal: #0fc6b4;
-    --green: #22c55e;
-    --greend: rgba(34,197,94,0.1);
-    --amber: #f5a623;
-    --amberd: rgba(245,166,35,0.12);
-    --red: #f04747;
-    --redd: rgba(240,71,71,0.1);
-    --t1: #e8edf8;
-    --t2: #8fa3c0;
-    --t3: #566a87;
-    --r: 13px;
-    --rs: 8px;
-  }
-  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:'DM Sans',sans-serif;background:var(--bg0);color:var(--t1);min-height:100vh}
-  ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:var(--bg1)}::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:3px}
-
-  /* HEADER */
-  header{background:var(--bg1);border-bottom:1px solid var(--bdr);position:sticky;top:0;z-index:200}
-  .hi{max-width:1060px;margin:0 auto;padding:0 22px;height:58px;display:flex;align-items:center;justify-content:space-between}
-  .logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.2rem;display:flex;align-items:center;gap:9px}
-  .lchip{background:var(--blue);color:#fff;font-size:.62rem;font-weight:700;letter-spacing:1px;padding:2px 7px;border-radius:5px;text-transform:uppercase}
-  nav{display:flex;gap:3px}
-  .nb{background:none;border:none;color:var(--t3);font-family:'DM Sans',sans-serif;font-size:.86rem;font-weight:500;padding:7px 15px;border-radius:7px;cursor:pointer;transition:all .2s}
-  .nb:hover{color:var(--t1);background:var(--bg2)}
-  .nb.on{color:var(--blueb);background:rgba(59,122,246,.12)}
-
-  /* CAMPAGNE BAR */
-  .cbar{background:var(--bg1);border-bottom:1px solid var(--bdr)}
-  .cinn{max-width:1060px;margin:0 auto;padding:10px 22px;display:flex;align-items:center;gap:12px 20px;flex-wrap:wrap}
-  .cinn-fields{display:grid;grid-template-columns:1fr 1fr;gap:8px 20px;align-items:end}
-  .clbl{font-family:'Syne',sans-serif;font-weight:700;font-size:.75rem;color:var(--blueb);text-transform:uppercase;letter-spacing:1px;white-space:nowrap;padding-bottom:2px}
-  .cf{display:flex;flex-direction:column;gap:4px}
-  .cf label{font-size:.68rem;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.8px}
-  .cf input{background:var(--bg2);border:1.5px solid var(--bdr);border-radius:var(--rs);color:var(--t1);font-family:'DM Sans',sans-serif;font-size:1rem;font-weight:500;padding:7px 12px;min-width:88px;width:88px;transition:all .2s}
-  .cf input.wide{min-width:180px;width:180px}
-  .cf input:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px var(--blueg)}
-  .cf input::placeholder{color:var(--t3)}
-  .sac-panel{margin-left:auto;display:flex;align-items:stretch;gap:0;border-radius:var(--rs);overflow:hidden;border:1.5px solid var(--bdr2);white-space:nowrap}
-  .sac-cell{background:var(--bg3);padding:8px 16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-width:90px}
-  .sac-cell+.sac-cell{border-left:1px solid var(--bdr2)}
-  .sac-cell.delta-pos{background:rgba(34,197,94,0.08)}
-  .sac-cell.delta-neg{background:rgba(240,71,71,0.08)}
-  .sac-cell-lbl{font-size:.67rem;color:var(--t3);font-weight:600;text-transform:uppercase;letter-spacing:.6px}
-  .sac-cell-val{font-family:'Syne',sans-serif;font-size:1.28rem;font-weight:800}
-  .sac-cell-sub{font-size:.62rem;color:var(--t3);margin-top:1px}
-
-  /* MAIN */
-  main{max-width:1060px;margin:0 auto;padding:26px 22px}
-  .sec{display:none}.sec.on{display:block}
-
-  /* PROGRESS */
-  .prog{display:flex;align-items:center;gap:13px;margin-bottom:22px;background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--rs);padding:13px 17px}
-  .pbo{flex:1;height:7px;background:var(--bg4);border-radius:7px;overflow:hidden}
-  .pbi{height:100%;background:linear-gradient(90deg,var(--blue),var(--teal));border-radius:7px;transition:width .5s ease}
-  .ptxt{font-size:.8rem;font-weight:600;color:var(--t2);white-space:nowrap}
-
-  /* SELECT */
-  .selrow{margin-bottom:20px}
-  .selrow label{display:block;font-size:.7rem;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px}
-  .selrow select{background:var(--bg2);border:1.5px solid var(--bdr);border-radius:var(--rs);color:var(--t1);font-family:'DM Sans',sans-serif;font-size:1rem;font-weight:500;padding:10px 40px 10px 13px;max-width:400px;width:100%;cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236ba3ff' stroke-width='2.5'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;transition:all .2s}
-  .selrow select:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px var(--blueg)}
-  .selrow select option{background:var(--bg2)}
-
-  /* CARDS */
-  .cgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(285px,1fr));gap:14px;margin-bottom:14px}
-  .card{background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r);padding:18px;transition:border-color .2s}
-  .card:hover{border-color:var(--bdr2)}
-  .ctit{font-family:'Syne',sans-serif;font-weight:700;font-size:.74rem;text-transform:uppercase;letter-spacing:1px;color:var(--t3);margin-bottom:14px;display:flex;align-items:center;gap:6px}
-  .igrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-  .ilbl{font-size:.68rem;font-weight:500;color:var(--t3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:3px}
-  .ival{font-size:1rem;font-weight:600;color:var(--t1)}
-
-  /* DESCENTE TABLE */
-  .dt{width:100%;border-collapse:collapse}
-  .dt th{background:var(--bg3);color:var(--t3);font-size:.68rem;font-weight:600;text-transform:uppercase;letter-spacing:.7px;padding:8px 9px;text-align:left}
-  .dt th:first-child{border-radius:6px 0 0 6px}.dt th:last-child{border-radius:0 6px 6px 0}
-  .dt td{padding:10px 9px;border-bottom:1px solid var(--bdr);font-weight:500;font-size:.88rem}
-  .dt tr:last-child td{border-bottom:none}
-  .chip{display:inline-flex;align-items:center;padding:3px 8px;border-radius:20px;font-size:.72rem;font-weight:600}
-  .cb{background:rgba(59,122,246,.14);color:var(--blueb)}
-  .ct{background:rgba(15,198,180,.12);color:var(--teal)}
-
-  /* TOTAL STRIP */
-  .tstrip{background:linear-gradient(135deg,var(--bg3),var(--bg4));border:1px solid var(--bdr2);border-radius:var(--r);padding:18px 22px;display:flex;align-items:center;justify-content:space-around;gap:14px;flex-wrap:wrap;margin-bottom:14px;box-shadow:0 4px 24px rgba(0,0,0,.35)}
-  .titem{text-align:center}
-  .tval{font-family:'Syne',sans-serif;font-size:1.9rem;font-weight:800;color:var(--t1);line-height:1}
-  .tval.bl{color:var(--blueb)}.tval.am{color:var(--amber)}
-  .tlbl{font-size:.7rem;color:var(--t3);margin-top:3px;text-transform:uppercase;letter-spacing:.8px}
-  .tdiv{width:1px;height:42px;background:var(--bdr)}
-
-  /* SAC RÉEL */
-  .srcard{background:var(--bg2);border:1.5px solid var(--amberd);border-radius:var(--r);padding:16px 18px;margin-bottom:14px;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
-  .srcard .ico{font-size:1.5rem;flex-shrink:0}
-  .srinfo{flex:1}
-  .srinfo h4{font-family:'Syne',sans-serif;font-weight:700;font-size:.84rem;color:var(--amber);margin-bottom:3px}
-  .srinfo p{font-size:.76rem;color:var(--t3)}
-  .srinput-wrap{display:flex;align-items:center;gap:9px}
-  .srinput-wrap label{font-size:.72rem;color:var(--t3);font-weight:500}
-  .srinput{background:var(--bg3);border:1.5px solid var(--bdr2);border-radius:var(--rs);color:var(--t1);font-family:'Syne',sans-serif;font-size:1.15rem;font-weight:700;padding:8px 12px;width:96px;text-align:center;transition:all .2s}
-  .srinput:focus{outline:none;border-color:var(--amber);box-shadow:0 0 0 3px var(--amberd)}
-
-  /* VALIDATE */
-  .vrow{background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r);padding:15px 18px;display:flex;align-items:center;gap:15px;flex-wrap:wrap}
-  .cbwrap{display:flex;align-items:center;gap:9px;cursor:pointer;flex:1}
-  .cbox{width:23px;height:23px;border:2px solid var(--bdr2);border-radius:6px;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0}
-  .cbox.on{background:var(--green);border-color:var(--green)}
-  .cbox svg{display:none}.cbox.on svg{display:block}
-  .cblbl{font-weight:500;font-size:.88rem;color:var(--t2)}
-
-  /* BUTTONS */
-  .btn{border:none;border-radius:var(--rs);font-family:'DM Sans',sans-serif;font-weight:600;font-size:.85rem;cursor:pointer;padding:9px 17px;display:inline-flex;align-items:center;gap:7px;transition:all .2s}
-  .btn-p{background:var(--blue);color:#fff}
-  .btn-p:hover{background:#2a68e8;transform:translateY(-1px);box-shadow:0 4px 14px var(--blueg)}
-  .btn-t{background:var(--teal);color:#fff}
-  .btn-t:hover{background:#0da99a;transform:translateY(-1px)}
-  .btn-g{background:var(--bg3);color:var(--t2);border:1px solid var(--bdr)}
-  .btn-g:hover{color:var(--t1);border-color:var(--bdr2);background:var(--bg4)}
-  .btn-d{background:var(--redd);color:var(--red);border:1px solid rgba(240,71,71,.2)}
-  .btn-d:hover{background:var(--red);color:#fff}
-  .btn-sm{padding:5px 11px;font-size:.78rem}
-
-  /* HISTORY */
-  .htop{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px}
-  .htop h2{font-family:'Syne',sans-serif;font-weight:700;font-size:1.25rem}
-  .hempty{text-align:center;padding:56px 20px;color:var(--t3)}
-  .hempty p{margin-top:12px;line-height:1.6}
-  .hcard{background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r);margin-bottom:13px;overflow:hidden;transition:border-color .2s}
-  .hcard:hover{border-color:var(--bdr2)}
-  .hhead{display:flex;align-items:center;justify-content:space-between;padding:13px 17px;background:var(--bg3);flex-wrap:wrap;gap:8px}
-  .hname{font-family:'Syne',sans-serif;font-weight:700;font-size:.97rem}
-  .hchips{display:flex;gap:7px;align-items:center;flex-wrap:wrap}
-  .hchip{padding:3px 8px;border-radius:20px;font-size:.72rem;font-weight:600}
-  .hc-ok{background:var(--greend);color:var(--green)}
-  .hc-w{background:var(--amberd);color:var(--amber)}
-  .hc-d{background:rgba(59,122,246,.1);color:var(--blueb)}
-  .hc-r{background:var(--bg4);color:var(--t2)}
-  .hbody{padding:13px 17px}
-  .hrow{display:flex;gap:18px;flex-wrap:wrap;margin-bottom:9px}
-  .hi2{font-size:.81rem;color:var(--t3)}
-  .hi2 strong{color:var(--t1)}
-  .hi2.bl strong{color:var(--blueb)}
-  .hi2.am strong{color:var(--amber)}
-  .hfoot{display:flex;gap:7px;justify-content:flex-end;flex-wrap:wrap;padding-top:8px;border-top:1px solid var(--bdr);margin-top:4px}
-  .editable{border:1.5px dashed transparent;border-radius:5px;padding:1px 5px;cursor:text;transition:all .2s;display:inline-block;min-width:36px}
-  .editable:hover{border-color:var(--blue);background:rgba(59,122,246,.07)}
-  .editable:focus{outline:none;border-style:solid;border-color:var(--blue);background:var(--bg3)}
-
-  /* MODAL */
-  .ov{position:fixed;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(5px);display:flex;align-items:center;justify-content:center;z-index:500;opacity:0;pointer-events:none;transition:opacity .2s}
-  .ov.on{opacity:1;pointer-events:all}
-  .modal{background:var(--bg2);border:1px solid var(--bdr2);border-radius:var(--r);padding:24px;max-width:370px;width:90%;box-shadow:0 8px 48px rgba(0,0,0,.6);transform:scale(.95);transition:transform .2s}
-  .ov.on .modal{transform:scale(1)}
-  .modal h3{font-family:'Syne',sans-serif;font-size:1.05rem;font-weight:700;margin-bottom:8px}
-  .modal p{color:var(--t3);font-size:.85rem;line-height:1.5;margin-bottom:18px}
-  .mbtns{display:flex;gap:9px;justify-content:flex-end}
-
-  /* TOAST */
-  .toast{position:fixed;bottom:20px;right:20px;background:var(--bg3);border:1px solid var(--bdr2);color:var(--t1);padding:10px 17px;border-radius:9px;font-size:.85rem;font-weight:500;box-shadow:0 8px 32px rgba(0,0,0,.5);transform:translateY(66px);opacity:0;transition:all .3s;z-index:999}
-  .toast.show{transform:translateY(0);opacity:1}
-  .toast.success{border-left:3px solid var(--green)}
-  .toast.info{border-left:3px solid var(--blue)}
-  .toast.warn{border-left:3px solid var(--amber)}
-
-  /* ── RESPONSIVE MOBILE (iPhone & petits écrans) ── */
-  @media(max-width:680px){
-
-    /* Header */
-    .hi{padding:0 14px;height:52px}
-    .logo{font-size:1rem}
-    .nb{font-size:.8rem;padding:6px 11px}
-
-    /* Campagne bar : tout en colonne centré */
-    .cinn{
-      flex-direction:column;
-      align-items:center;
-      text-align:center;
-      gap:10px;
-      padding:14px 14px 16px;
-    }
-    .clbl{width:100%;text-align:center}
-    .cinn-fields{
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:10px 10px;
-      width:100%;
-      max-width:360px;
-    }
-    .cf{align-items:stretch;width:100%;min-width:0;overflow:hidden}
-    .cf input,
-    .cf input.wide{
-      display:block;
-      width:100% !important;
-      min-width:0 !important;
-      max-width:100% !important;
-      font-size:1rem;
-      padding:10px 8px;
-      box-sizing:border-box;
-    }
-    /* iOS date input natif — forcer la même taille */
-    input[type=date]{
-      -webkit-appearance:none;
-      appearance:none;
-    }
-    /* Panneau sacs : pleine largeur, 3 cases */
-    .sac-panel{
-      margin-left:0;
-      width:100%;
-      max-width:360px;
-    }
-    .sac-cell{flex:1;padding:8px 10px}
-    .sac-cell-lbl{font-size:.58rem}
-    .sac-cell-val{font-size:1.1rem}
-
-    /* Main */
-    main{padding:14px 12px}
-
-    /* Grille cards en 1 colonne */
-    .cgrid{grid-template-columns:1fr}
-
-    /* Total strip : 2 colonnes sur mobile */
-    .tstrip{
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:14px;
-      padding:16px;
-    }
-    .tdiv{display:none}
-    .titem{padding:4px 0}
-    .tval{font-size:1.6rem}
-
-    /* Sacs réels card : colonne */
-    .srcard{flex-direction:column;align-items:flex-start;gap:12px}
-    .srinput-wrap{width:100%;justify-content:space-between}
-    .srinput{width:120px;font-size:1.1rem;padding:10px}
-
-    /* Validate row : colonne */
-    .vrow{flex-direction:column;align-items:stretch;gap:12px}
-    .cbwrap{justify-content:flex-start}
-    .btn-p{width:100%;justify-content:center;padding:13px;font-size:.95rem}
-
-    /* Historique header */
-    .htop{flex-direction:column;align-items:stretch}
-    .htop div{display:flex;gap:8px}
-    .htop .btn{flex:1;justify-content:center}
-
-    /* History cards */
-    .hhead{flex-direction:column;align-items:flex-start}
-    .hrow{flex-direction:column;gap:6px}
-    .hfoot{justify-content:stretch;gap:6px}
-    .hfoot .btn{flex:1;justify-content:center;font-size:.78rem}
-
-    /* Select pleine largeur */
-    .selrow select{max-width:100%}
-
-    /* Progression */
-    .prog{padding:11px 13px}
-  }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VICON — Gestion Engrais Premium</title>
+  
+  <!-- Premium Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+  
+  <!-- Global jsPDF Library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  
+  <!-- Custom Styling -->
+  <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body class="scroller">
 
-<header>
-  <div class="hi">
-    <div class="logo">🌿 VICON Engrais</div>
-    <nav>
-      <button class="nb on" onclick="showSec('parcelle',this)">📍 Parcelles</button>
-      <button class="nb" onclick="showSec('historique',this)">📋 Historique</button>
-    </nav>
+  <!-- Interactive 3D Background -->
+  <canvas id="three-canvas"></canvas>
+
+  <!-- APP HEADER -->
+  <header>
+    <div class="header-container">
+      <div class="logo">
+        🌿 VICON Engrais <span>Premium</span>
+      </div>
+      <nav>
+        <button id="tab-btn-parcelle" class="nav-btn active">📍 Parcelles</button>
+        <button id="tab-btn-historique" class="nav-btn">📋 Historique</button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- CAMPAGNE BAR -->
+  <div class="campagne-bar">
+    <div class="campagne-container">
+      <div class="campagne-title-wrap">
+        <span class="campagne-lbl">📅 Campagne</span>
+        <div class="form-group" style="flex-direction: row; align-items: center; gap: 8px;">
+          <select id="g-camp-select" style="min-width: 180px; padding: 6px 36px 6px 12px; font-size: 0.88rem;"></select>
+          <button id="btn-add-camp" class="btn btn-glass btn-sm" title="Nouvelle campagne" style="padding: 6px 10px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </button>
+          <button id="btn-delete-camp" class="btn btn-danger btn-sm" title="Supprimer la campagne" style="padding: 6px 10px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="campagne-fields">
+        <div class="form-group">
+          <label>Date globale</label>
+          <input type="date" id="g-date">
+        </div>
+        <div class="form-group">
+          <label>Référence engrais</label>
+          <input type="text" id="g-ref" placeholder="ex: NPK 15-15-15" style="width: 150px;">
+        </div>
+        <div class="form-group">
+          <label>Dose ciblée (kg/ha)</label>
+          <input type="number" id="g-qte" value="1000" min="1" style="width: 90px;">
+        </div>
+        <div class="form-group">
+          <label>Budget sacs total</label>
+          <input type="number" id="g-sacs-tot" placeholder="—" min="0" style="width: 90px;">
+        </div>
+      </div>
+
+      <!-- Real stock calculations (toggled in JS) -->
+      <div class="stock-panel" id="sac-box" style="display: none;">
+        <div class="stock-cell">
+          <span class="stock-cell-lbl">Sacs utilisés</span>
+          <span class="stock-cell-val" id="sac-used" style="color: #8bb2ff;">—</span>
+          <span class="stock-cell-sub">cumul réel</span>
+        </div>
+        <div class="stock-cell">
+          <span class="stock-cell-lbl">Sacs restants</span>
+          <span class="stock-cell-val" id="sac-rem" style="color: var(--neon-amber);">—</span>
+          <span class="stock-cell-sub">sur le stock</span>
+        </div>
+        <div class="stock-cell" id="sac-delta-cell">
+          <span class="stock-cell-lbl">Écart sacs</span>
+          <span class="stock-cell-val" id="sac-delta">—</span>
+          <span class="stock-cell-sub" id="sac-delta-sub">calculés / réels</span>
+        </div>
+      </div>
+    </div>
   </div>
-</header>
 
-<!-- CAMPAGNE -->
-<div class="cbar">
-  <div class="cinn">
-    <span class="clbl">📅 Campagne</span>
-    <div class="cinn-fields">
-      <div class="cf"><label>Date</label><input type="date" id="g-date" class="wide"></div>
-      <div class="cf"><label>Référence engrais</label><input type="text" id="g-ref" class="wide" placeholder="ex: NPK 15-15-15…"></div>
-      <div class="cf"><label>Qté/ha (kg)</label><input type="number" id="g-qte" value="1000" min="1" oninput="recalc();saveCampagne()"></div>
-      <div class="cf"><label>Sacs totaux campagne</label><input type="number" id="g-sacs-tot" placeholder="—" min="0" oninput="updateSacBox();saveCampagne()"></div>
-    </div>
-    <div class="sac-panel" id="sac-box" style="display:none">
-      <div class="sac-cell">
-        <div class="sac-cell-lbl">Sacs utilisés</div>
-        <div class="sac-cell-val" id="sac-used" style="color:var(--blueb)">—</div>
-        <div class="sac-cell-sub">réels cumulés</div>
+  <!-- MAIN VIEWPORT -->
+  <main>
+
+    <!-- SECTION 1: PARCELLES -->
+    <section id="sec-parcelle" class="tab-section active">
+      
+      <!-- PROGRESS TRACKER -->
+      <div class="progress-container glass-panel">
+        <div class="progress-track"><div class="progress-fill" id="pbar"></div></div>
+        <span class="progress-txt" id="plbl">0 / 0 parcelles traitées</span>
       </div>
-      <div class="sac-cell">
-        <div class="sac-cell-lbl">Sacs restants</div>
-        <div class="sac-cell-val" id="sac-rem" style="color:var(--amber)">—</div>
-        <div class="sac-cell-sub">sur le stock</div>
-      </div>
-      <div class="sac-cell" id="sac-delta-cell">
-        <div class="sac-cell-lbl">Écart sacs</div>
-        <div class="sac-cell-val" id="sac-delta">—</div>
-        <div class="sac-cell-sub" id="sac-delta-sub">calculés / réels</div>
-      </div>
-    </div>
-  </div>
-</div>
 
-<main>
-
-  <!-- PARCELLES -->
-  <section id="sec-parcelle" class="sec on">
-    <div class="prog">
-      <div class="pbo"><div class="pbi" id="pbar" style="width:0%"></div></div>
-      <div class="ptxt" id="plbl">0 / 18 parcelles traitées</div>
-    </div>
-    <div class="selrow">
-      <label>Sélectionner une parcelle</label>
-      <select id="psel" onchange="loadP()">
-        <option value="">— Choisir une parcelle —</option>
-      </select>
-    </div>
-
-    <div id="fiche" style="display:none">
-      <div class="cgrid">
-        <div class="card">
-          <div class="ctit">📍 Informations</div>
-          <div class="igrid">
-            <div><div class="ilbl">Parcelle</div><div class="ival" id="f-nom">—</div></div>
-            <div><div class="ilbl">Culture</div><div class="ival" id="f-cul">—</div></div>
-            <div><div class="ilbl">Surface</div><div class="ival" id="f-surf">—</div></div>
-            <div><div class="ilbl">Longueur rangs</div><div class="ival" id="f-lon">—</div></div>
-            <div><div class="ilbl">Nb rangs</div><div class="ival" id="f-rg">—</div></div>
+      <!-- PARCEL SELECTOR -->
+      <div class="select-row">
+        <div class="select-wrap">
+          <label>Sélectionner une parcelle</label>
+          <div style="display: flex; gap: 8px;">
+            <select id="psel">
+              <option value="">— Choisir une parcelle —</option>
+            </select>
+            <button id="btn-add-parcel" class="btn btn-primary" title="Créer une parcelle" style="padding: 10px 14px;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            </button>
           </div>
         </div>
-        <div class="card">
-          <div class="ctit">⚗️ Qté par descente</div>
-          <table class="dt">
-            <thead><tr><th>Config.</th><th>Sacs (25 kg)</th><th>Kg</th></tr></thead>
-            <tbody>
-              <tr><td><span class="chip cb">9 rangs</span></td><td id="d9s">—</td><td id="d9k">—</td></tr>
-              <tr><td><span class="chip ct">11 rangs</span></td><td id="d11s">—</td><td id="d11k">—</td></tr>
-            </tbody>
-          </table>
-        </div>
       </div>
 
-      <div class="tstrip">
-        <div class="titem"><div class="tval bl" id="t-kg">—</div><div class="tlbl">kg total parcelle</div></div>
-        <div class="tdiv"></div>
-        <div class="titem"><div class="tval" id="t-sc">—</div><div class="tlbl">sacs calculés (25 kg)</div></div>
-        <div class="tdiv"></div>
-        <div class="titem"><div class="tval am" id="t-sr">—</div><div class="tlbl">sacs réels</div></div>
-        <div class="tdiv"></div>
-        <div class="titem"><div class="tval" id="t-ha">—</div><div class="tlbl">ha</div></div>
-      </div>
-
-      <!-- Saisie sacs réels -->
-      <div class="srcard">
-        <div class="ico">🎒</div>
-        <div class="srinfo">
-          <h4>Sacs réellement utilisés</h4>
-          <p id="sr-note">Laissez vide pour utiliser la valeur calculée.</p>
-        </div>
-        <div class="srinput-wrap">
-          <label>Nb sacs réels</label>
-          <input type="number" class="srinput" id="sr-input" placeholder="—" min="0" step="0.5" oninput="onSR()">
-        </div>
-      </div>
-
-      <div class="vrow">
-        <div class="cbwrap" onclick="toggleDone()">
-          <div class="cbox" id="cbox">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3.5"><path d="M20 6 9 17l-5-5"/></svg>
+      <!-- SELECTED PARCEL DETAILED VIEW (FICHE) -->
+      <div id="fiche" class="fiche-container" style="display: none;">
+        
+        <div class="card-grid">
+          <!-- Information Card -->
+          <div class="card glass-panel">
+            <div class="card-title">
+              <span>📍 Informations</span>
+              <button id="btn-edit-parcel-trigger" class="btn btn-glass btn-sm" style="margin-left: auto; display: none;">
+                ✏️ Modifier la parcelle
+              </button>
+            </div>
+            <div class="info-grid">
+              <div class="info-item">
+                <span class="info-lbl">Nom Parcelle</span>
+                <span class="info-val" id="f-nom">—</span>
+              </div>
+              <div class="info-item">
+                <span class="info-lbl">Culture</span>
+                <span class="info-val" id="f-cul">—</span>
+              </div>
+              <div class="info-item">
+                <span class="info-lbl">Surface</span>
+                <span class="info-val" id="f-surf">—</span>
+              </div>
+              <div class="info-item">
+                <span class="info-lbl">Longueur rangs</span>
+                <span class="info-val" id="f-lon">—</span>
+              </div>
+              <div class="info-item" style="grid-column: span 2;">
+                <span class="info-lbl">Nombre de rangs</span>
+                <span class="info-val" id="f-rg">—</span>
+              </div>
+            </div>
           </div>
-          <span class="cblbl">Marquer la parcelle comme traitée</span>
+
+          <!-- Configuration Card -->
+          <div class="card glass-panel">
+            <div class="card-title">⚗️ Qté par descente</div>
+            <div class="table-wrap">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Configuration</th>
+                    <th>Sacs (25 kg)</th>
+                    <th>Kg requis</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><span class="chip blue">9 rangs</span></td>
+                    <td id="d9s">—</td>
+                    <td id="d9k">—</td>
+                  </tr>
+                  <tr>
+                    <td><span class="chip teal">11 rangs</span></td>
+                    <td id="d11s">—</td>
+                    <td id="d11k">—</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
-        <button class="btn btn-p" onclick="saveE()">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-          Enregistrer
-        </button>
+
+        <!-- Dynamic summary strip -->
+        <div class="total-strip">
+          <div class="total-item">
+            <span class="total-val" id="t-kg">—</span>
+            <span class="total-lbl">kg requis total</span>
+          </div>
+          <div class="total-divider"></div>
+          <div class="total-item">
+            <span class="total-val blue" id="t-sc">—</span>
+            <span class="total-lbl">sacs théoriques</span>
+          </div>
+          <div class="total-divider"></div>
+          <div class="total-item">
+            <span class="total-val amber" id="t-sr">—</span>
+            <span class="total-lbl">sacs réels</span>
+          </div>
+          <div class="total-divider"></div>
+          <div class="total-item">
+            <span class="total-val" id="t-ha">—</span>
+            <span class="total-lbl">hectares</span>
+          </div>
+        </div>
+
+        <!-- Real applied bags input card -->
+        <div class="real-bags-panel glass-panel">
+          <div class="real-bags-icon">🎒</div>
+          <div class="real-bags-info">
+            <h4>Sacs réellement utilisés</h4>
+            <p id="sr-note">Saisissez la quantité de sacs réellement appliqués ou laissez vide pour utiliser la théorie.</p>
+          </div>
+          <div class="real-bags-input-wrap">
+            <label>Sacs réels</label>
+            <input type="number" id="sr-input" class="real-bags-input" placeholder="—" min="0" step="0.5">
+          </div>
+        </div>
+
+        <!-- Validation Row -->
+        <div class="validation-row glass-panel">
+          <div id="cbox-wrap" class="checkbox-wrap">
+            <div id="cbox" class="custom-checkbox">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4"><path d="M20 6 9 17l-5-5"/></svg>
+            </div>
+            <span class="checkbox-lbl">Marquer la parcelle comme traitée</span>
+          </div>
+          <button id="btn-save-treatment" class="btn btn-primary">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+            Enregistrer le passage
+          </button>
+        </div>
+
       </div>
-    </div>
-  </section>
+    </section>
 
-  <!-- HISTORIQUE -->
-  <section id="sec-historique" class="sec">
-    <div class="htop">
-      <h2>📋 Historique des passages</h2>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;">
-        <button class="btn btn-t" onclick="exportAll()">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          Exporter tout PDF
-        </button>
-        <button class="btn btn-d" onclick="askDelAll()">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
-          Tout supprimer
-        </button>
-      </div>
-    </div>
-    <div id="hlist"></div>
-  </section>
-</main>
-
-<!-- MODAL supprimer un -->
-<div class="ov" id="dmod">
-  <div class="modal">
-    <h3>🗑️ Supprimer l'entrée ?</h3>
-    <p>Cette action est irréversible. L'enregistrement sera définitivement supprimé.</p>
-    <div class="mbtns">
-      <button class="btn btn-g" onclick="closeMod()">Annuler</button>
-      <button class="btn btn-d" onclick="confirmDel()">Supprimer</button>
-    </div>
-  </div>
-</div>
-<!-- MODAL supprimer tout -->
-<div class="ov" id="dmodall">
-  <div class="modal">
-    <h3>🗑️ Supprimer tout l'historique ?</h3>
-    <p>Cette action est irréversible. <strong>Toutes</strong> les entrées de l'historique seront définitivement supprimées.</p>
-    <div class="mbtns">
-      <button class="btn btn-g" onclick="closeModAll()">Annuler</button>
-      <button class="btn btn-d" onclick="confirmDelAll()">Tout supprimer</button>
-    </div>
-  </div>
-</div>
-<div class="toast" id="toast"></div>
-
-<script>
-const PAR = [
-  {nom:"40 Rangs meunier",      cul:"vigne champenoise",surface:0.43,lon:100,rg:40},
-  {nom:"6 rangs Malivas",       cul:"vigne champenoise",surface:0.04,lon:80, rg:6},
-  {nom:"Asperges",              cul:"vigne champenoise",surface:0.02,lon:50, rg:5},
-  {nom:"Catherine",             cul:"vigne champenoise",surface:0.06,lon:40, rg:14},
-  {nom:"Chauffours Chardonnay", cul:"vigne champenoise",surface:0.35,lon:140,rg:140},
-  {nom:"Chauffours Meuniers",   cul:"vigne champenoise",surface:0.53,lon:140,rg:140},
-  {nom:"Chauffours meuniers Gr",cul:"vigne champenoise",surface:0.36,lon:140,rg:140},
-  {nom:"Le Barré",              cul:"vigne champenoise",surface:0.31,lon:150,rg:21},
-  {nom:"Le rez",                cul:"vigne champenoise",surface:0.06,lon:40, rg:15},
-  {nom:"les 7 Rangs",           cul:"vigne champenoise",surface:0.07,lon:100,rg:7},
-  {nom:"Les Hayes",             cul:"vigne champenoise",surface:0.39,lon:50, rg:80},
-  {nom:"Les Petits Pinots",     cul:"vigne champenoise",surface:0.11,lon:60, rg:15},
-  {nom:"Les Russiaux",          cul:"vigne champenoise",surface:0.23,lon:100,rg:11},
-  {nom:"Malivas Chardonnay",    cul:"vigne champenoise",surface:0.26,lon:140,rg:17},
-  {nom:"Malivas Pinot",         cul:"vigne champenoise",surface:0.15,lon:140,rg:11},
-  {nom:"montagne de Reims",     cul:"vigne champenoise",surface:0.21,lon:90, rg:20},
-  {nom:"Pelles à Fours",        cul:"vigne champenoise",surface:0.23,lon:130,rg:15},
-  {nom:"Poncelet",              cul:"vigne champenoise",surface:0.26,lon:130,rg:21}
-];
-const SAC=25;
-const CAMP_KEY='vicon_camp';
-const HIST_KEY='vicon3';
-let cur=null,done=false,delId=null;
-
-function r2(v){return Math.round(v*100)/100}
-function getQte(){return parseFloat(document.getElementById('g-qte').value)||1000}
-
-function calcP(p,q){
-  const tk=r2(p.surface*q),ts=r2(tk/SAC);
-  const k9=r2(q*p.lon*9/10000),k11=r2(q*p.lon*11/10000);
-  return{tk,ts,k9,s9:r2(k9/SAC),k11,s11:r2(k11/SAC)};
-}
-
-/* ── PERSISTANCE CAMPAGNE ── */
-function saveCampagne(){
-  const data={
-    ref: document.getElementById('g-ref').value,
-    qte: document.getElementById('g-qte').value,
-    sacsTot: document.getElementById('g-sacs-tot').value,
-    date: document.getElementById('g-date').value
-  };
-  localStorage.setItem(CAMP_KEY, JSON.stringify(data));
-}
-
-function loadCampagne(){
-  try{
-    const data=JSON.parse(localStorage.getItem(CAMP_KEY)||'{}');
-    if(data.ref)  document.getElementById('g-ref').value=data.ref;
-    if(data.qte)  document.getElementById('g-qte').value=data.qte;
-    if(data.sacsTot) document.getElementById('g-sacs-tot').value=data.sacsTot;
-    if(data.date) document.getElementById('g-date').value=data.date;
-    else document.getElementById('g-date').valueAsDate=new Date();
-  }catch{
-    document.getElementById('g-date').valueAsDate=new Date();
-  }
-}
-
-/* ── INIT ── */
-function init(){
-  loadCampagne();
-  // attach save to ref and date too
-  document.getElementById('g-ref').addEventListener('input', saveCampagne);
-  document.getElementById('g-date').addEventListener('input', saveCampagne);
-
-  const s=document.getElementById('psel');
-  PAR.forEach((p,i)=>{const o=document.createElement('option');o.value=i;o.textContent=p.nom;s.appendChild(o)});
-  updProg();
-  updateSacBox();
-  renderH();
-}
-
-/* ── SAC BOX : 3 cases — utilisés / restants / écart calculés vs réels ── */
-function updateSacBox(){
-  const tot=parseFloat(document.getElementById('g-sacs-tot').value);
-  const box=document.getElementById('sac-box');
-  if(!tot||isNaN(tot)){box.style.display='none';return}
-  box.style.display='flex';
-
-  const h=getH();
-  // Sacs réels cumulés (enregistrés)
-  const used=r2(h.reduce((a,e)=>a+(parseFloat(e.sr)||0),0));
-  // Sacs calculés cumulés (théoriques)
-  const calc=r2(h.reduce((a,e)=>a+(parseFloat(e.ts)||0),0));
-  // Restants = stock - réels utilisés
-  const rem=r2(tot-used);
-  // Écart = calculés - réels (positif = économie, négatif = dépassement)
-  const delta=r2(calc-used);
-
-  document.getElementById('sac-used').textContent=used;
-  const remEl=document.getElementById('sac-rem');
-  remEl.textContent=rem;
-  remEl.style.color=(rem<0||rem<5)?'var(--red)':'var(--amber)';
-
-  const deltaEl=document.getElementById('sac-delta');
-  const deltaCell=document.getElementById('sac-delta-cell');
-  const deltaSub=document.getElementById('sac-delta-sub');
-  deltaEl.textContent=(delta>=0?'+':'')+delta;
-  deltaCell.className='sac-cell '+(delta>=0?'delta-pos':'delta-neg');
-  deltaEl.style.color=delta>=0?'var(--green)':'var(--red)';
-  deltaSub.textContent=delta>=0?'économie de sacs':'dépassement';
-}
-
-/* ── CHARGEMENT FICHE ── */
-function loadP(){
-  const v=document.getElementById('psel').value;
-  if(v===''){document.getElementById('fiche').style.display='none';cur=null;return}
-  cur=parseInt(v);done=false;
-  document.getElementById('cbox').classList.remove('on');
-  document.getElementById('sr-input').value='';
-  renderF(PAR[cur]);
-  document.getElementById('fiche').style.display='block';
-}
-
-function recalc(){if(cur!==null)renderF(PAR[cur])}
-
-function renderF(p){
-  const c=calcP(p,getQte());
-  document.getElementById('f-nom').textContent=p.nom;
-  document.getElementById('f-cul').textContent=p.cul;
-  document.getElementById('f-surf').textContent=p.surface+' ha';
-  document.getElementById('f-lon').textContent=p.lon+' m';
-  document.getElementById('f-rg').textContent=p.rg;
-  document.getElementById('d9s').innerHTML=`<strong>${c.s9}</strong> sac${c.s9>1?'s':''}`;
-  document.getElementById('d9k').innerHTML=`<strong>${c.k9}</strong> kg`;
-  document.getElementById('d11s').innerHTML=`<strong>${c.s11}</strong> sac${c.s11>1?'s':''}`;
-  document.getElementById('d11k').innerHTML=`<strong>${c.k11}</strong> kg`;
-  document.getElementById('t-kg').textContent=c.tk;
-  document.getElementById('t-sc').textContent=c.ts;
-  document.getElementById('t-ha').textContent=p.surface;
-  document.getElementById('sr-note').textContent=`Valeur calculée par défaut : ${c.ts} sacs. Laissez vide pour l'utiliser.`;
-  onSR();
-}
-
-function onSR(){
-  if(cur===null)return;
-  const c=calcP(PAR[cur],getQte());
-  const v=document.getElementById('sr-input').value;
-  const sr=v===''?c.ts:(parseFloat(v)||c.ts);
-  document.getElementById('t-sr').textContent=isNaN(sr)?'—':sr;
-}
-
-function toggleDone(){done=!done;document.getElementById('cbox').classList.toggle('on',done)}
-
-/* ── ENREGISTREMENT — efface la fiche après validation ── */
-function saveE(){
-  if(cur===null)return;
-  const p=PAR[cur];const q=getQte();const c=calcP(p,q);
-  const v=document.getElementById('sr-input').value;
-  const sr=v===''?c.ts:(parseFloat(v)||c.ts);
-  const e={
-    id:Date.now(),
-    date:document.getElementById('g-date').value,
-    ref:document.getElementById('g-ref').value.trim(),
-    q,sr,
-    nom:p.nom,cul:p.cul,surface:p.surface,lon:p.lon,rg:p.rg,
-    done,
-    tk:c.tk,ts:c.ts,k9:c.k9,s9:c.s9,k11:c.k11,s11:c.s11
-  };
-  const h=getH();h.unshift(e);saveH(h);
-
-  // Réinitialise et masque la fiche
-  cur=null;done=false;
-  document.getElementById('psel').value='';
-  document.getElementById('fiche').style.display='none';
-  document.getElementById('sr-input').value='';
-  document.getElementById('cbox').classList.remove('on');
-
-  renderH();updProg();updateSacBox();
-  toast('✅ Enregistré — parcelle effacée','success');
-}
-
-/* ── HISTORIQUE ── */
-function getH(){try{return JSON.parse(localStorage.getItem(HIST_KEY)||'[]')}catch{return[]}}
-function saveH(h){localStorage.setItem(HIST_KEY,JSON.stringify(h))}
-function fmtD(d){if(!d)return'—';const[y,m,j]=d.split('-');return`${j}/${m}/${y}`}
-
-function renderH(){
-  const h=getH();const el=document.getElementById('hlist');
-  if(!h.length){
-    el.innerHTML=`<div class="hempty"><svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" opacity=".3"><path d="M9 11H7a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="8" rx="1"/></svg><p>Aucun enregistrement.<br>Sélectionnez une parcelle et cliquez sur <strong>Enregistrer</strong>.</p></div>`;
-    return;
-  }
-  el.innerHTML=h.map(e=>`
-    <div class="hcard">
-      <div class="hhead">
-        <div class="hname">${e.nom}</div>
-        <div class="hchips">
-          <span class="hchip ${e.done?'hc-ok':'hc-w'}">${e.done?'✅ Traitée':'⏳ En attente'}</span>
-          <span class="hchip hc-d">📅 ${fmtD(e.date)}</span>
-          ${e.ref?`<span class="hchip hc-r">🧪 ${e.ref}</span>`:''}
+    <!-- SECTION 2: HISTORIQUE -->
+    <section id="sec-historique" class="tab-section">
+      <div class="histo-top">
+        <h2>📋 Historique de la campagne active</h2>
+        <div class="histo-actions">
+          <button id="btn-export-all-pdf" class="btn btn-teal">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Exporter PDF
+          </button>
+          <button id="btn-export-all-csv" class="btn btn-glass">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Exporter CSV
+          </button>
+          <button id="btn-delete-all-histo" class="btn btn-danger">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+            Tout supprimer
+          </button>
         </div>
       </div>
-      <div class="hbody">
-        <div class="hrow">
-          <div class="hi2">Réf. engrais : <strong contenteditable="true" class="editable" onblur="updF(${e.id},'ref',this.textContent)">${e.ref||'—'}</strong></div>
-          <div class="hi2">Qté/ha : <strong>${e.q} kg</strong></div>
-          <div class="hi2">Surface : <strong>${e.surface} ha</strong></div>
-          <div class="hi2">Rangs : <strong>${e.rg}</strong> × ${e.lon} m</div>
+
+      <!-- Main History Cards Container -->
+      <div id="hlist" class="history-list"></div>
+    </section>
+
+  </main>
+
+  <!-- ==========================================
+       ── NATIVE DIALOGS (MODALS) ──
+       ========================================== */ -->
+
+  <!-- 1. DELETE CONFIRMATION DIALOG -->
+  <dialog id="delete-dialog">
+    <div class="dialog-head">
+      <h3>🗑️ Supprimer ?</h3>
+    </div>
+    <p class="dialog-desc"></p>
+    <div class="dialog-actions">
+      <button id="delete-dialog-cancel" class="btn btn-glass">Annuler</button>
+      <button id="delete-dialog-confirm" class="btn btn-danger">Confirmer</button>
+    </div>
+  </dialog>
+
+  <!-- 2. NEW CAMPAIGN DIALOG -->
+  <dialog id="campaign-dialog">
+    <div class="dialog-head">
+      <h3>📅 Nouvelle campagne</h3>
+    </div>
+    <p class="dialog-desc">Nommez votre campagne pour y rattacher vos nouveaux calculs d'engrais.</p>
+    <div class="dialog-form">
+      <div class="form-group">
+        <label>Nom de la campagne</label>
+        <input type="text" id="c-name" placeholder="ex: Campagne Printemps 2026">
+      </div>
+    </div>
+    <div class="dialog-actions">
+      <button id="campaign-dialog-cancel" class="btn btn-glass">Annuler</button>
+      <button id="campaign-dialog-save" class="btn btn-primary">Créer</button>
+    </div>
+  </dialog>
+
+  <!-- 3. PARCEL CREATION & EDITION DIALOG -->
+  <dialog id="parcel-editor-dialog">
+    <div class="dialog-head">
+      <h3>📍 Éditeur de parcelle</h3>
+    </div>
+    <p class="dialog-desc">Remplissez les caractéristiques physiques de la parcelle pour calculer les besoins d'épandage.</p>
+    <div class="dialog-form">
+      <div class="form-group">
+        <label>Nom de la parcelle</label>
+        <input type="text" id="p-nom" placeholder="ex: Chauffours Meuniers">
+      </div>
+      <div class="form-group">
+        <label>Culture / Type de vigne</label>
+        <input type="text" id="p-cul" value="vigne champenoise">
+      </div>
+      <div class="dialog-row">
+        <div class="form-group">
+          <label>Surface (hectares)</label>
+          <input type="number" id="p-surf" placeholder="ex: 0.35" step="0.01" min="0.01">
         </div>
-        <div class="hrow">
-          <div class="hi2 bl">Total calculé : <strong>${e.tk} kg</strong> / <strong>${e.ts} sacs</strong></div>
-          <div class="hi2 am">Sacs réels : <strong contenteditable="true" class="editable" onblur="updFN(${e.id},'sr',this.textContent)">${e.sr}</strong></div>
-        </div>
-        <div class="hfoot">
-          <button class="btn btn-g btn-sm" onclick="togDoneH(${e.id})">${e.done?'↩ Non traitée':'✅ Marquer traitée'}</button>
-          <button class="btn btn-g btn-sm" onclick="expOne(${e.id})">📄 PDF</button>
-          <button class="btn btn-d btn-sm" onclick="askDel(${e.id})">🗑 Supprimer</button>
+        <div class="form-group">
+          <label>Longueur rang (m)</label>
+          <input type="number" id="p-lon" placeholder="ex: 140" step="1" min="1">
         </div>
       </div>
-    </div>`).join('');
-}
+      <div class="form-group">
+        <label>Nombre total de rangs</label>
+        <input type="number" id="p-rg" placeholder="ex: 140" step="1" min="1">
+      </div>
+    </div>
+    <div class="dialog-actions">
+      <button id="btn-delete-parcel" class="btn btn-danger" style="margin-right: auto; display: none;">🗑 Supprimer</button>
+      <button id="parcel-editor-cancel" class="btn btn-glass">Annuler</button>
+      <button id="parcel-editor-save" class="btn btn-primary">Valider</button>
+    </div>
+  </dialog>
 
-function updF(id,k,v){const h=getH();const e=h.find(x=>x.id===id);if(e){e[k]=v.trim();saveH(h);renderH();updateSacBox()}}
-function updFN(id,k,v){const h=getH();const e=h.find(x=>x.id===id);if(e){const n=parseFloat(v);if(!isNaN(n)){e[k]=n;saveH(h);updateSacBox()}}}
-function togDoneH(id){const h=getH();const e=h.find(x=>x.id===id);if(e){e.done=!e.done;saveH(h);renderH();updProg()}}
+  <!-- TOAST NOTIFICATION CONTAINER -->
+  <div id="toast" class="toast"></div>
 
-/* ── SUPPRESSION ── */
-function askDel(id){delId=id;document.getElementById('dmod').classList.add('on')}
-function closeMod(){document.getElementById('dmod').classList.remove('on');delId=null}
-function confirmDel(){if(!delId)return;saveH(getH().filter(x=>x.id!==delId));renderH();updProg();updateSacBox();closeMod();toast('🗑 Supprimé','info')}
-document.getElementById('dmod').addEventListener('click',e=>{if(e.target===document.getElementById('dmod'))closeMod()})
+  <!-- SCRIPT BOOTSTRAP -->
+  <script type="module">
+    import { initThreeBg } from './three-bg.js';
+    // Run Three.js Background
+    initThreeBg('three-canvas');
+  </script>
+  <script type="module" src="app.js"></script>
 
-function askDelAll(){document.getElementById('dmodall').classList.add('on')}
-function closeModAll(){document.getElementById('dmodall').classList.remove('on')}
-function confirmDelAll(){saveH([]);renderH();updProg();updateSacBox();closeModAll();toast('🗑 Historique effacé','info')}
-document.getElementById('dmodall').addEventListener('click',e=>{if(e.target===document.getElementById('dmodall'))closeModAll()})
-
-/* ── PROGRESSION — basée sur l'historique ── */
-function updProg(){
-  // Une parcelle est "traitée" si au moins une entrée done=true dans l'historique
-  const donePar=new Set(getH().filter(e=>e.done).map(e=>e.nom));
-  const total=PAR.length;
-  const done=donePar.size;
-  const pct=Math.round(done/total*100);
-  document.getElementById('pbar').style.width=pct+'%';
-  document.getElementById('plbl').textContent=`${done} / ${total} parcelles traitées`;
-}
-
-/* ── PDF ── */
-function expOne(id){const e=getH().find(x=>x.id===id);if(e)genPDF([e],`Engrais_${e.nom.replace(/\s+/g,'_')}`)}
-function exportAll(){const h=getH();if(!h.length){toast('Historique vide','warn');return}genPDF(h,`Engrais_Historique_${new Date().toISOString().slice(0,10)}`)}
-
-function genPDF(entries,fn){
-  const{jsPDF}=window.jspdf;
-  const doc=new jsPDF({unit:'mm',format:'a4'});
-  const W=210,M=14;let y=0;
-  doc.setFillColor(13,21,38);doc.rect(0,0,W,28,'F');
-  doc.setFillColor(59,122,246);doc.rect(0,28,W,2,'F');
-  doc.setTextColor(232,237,248);doc.setFont('helvetica','bold');doc.setFontSize(15);
-  doc.text('VICON — Gestion Engrais',M,13);
-  doc.setFont('helvetica','normal');doc.setFontSize(8.5);doc.setTextColor(143,163,192);
-  doc.text('SCEV Champagne — Commune CHARLY',M,21);
-  doc.text(`Généré le ${new Date().toLocaleDateString('fr-FR')}`,W-M,21,{align:'right'});
-  y=36;
-
-  entries.forEach(e=>{
-    if(y>252){doc.addPage();y=14}
-    doc.setFillColor(22,32,64);doc.roundedRect(M,y,W-2*M,10,2,2,'F');
-    doc.setTextColor(232,237,248);doc.setFont('helvetica','bold');doc.setFontSize(10.5);
-    doc.text(e.nom,M+4,y+7);
-    doc.setFontSize(7.5);
-    doc.setTextColor(e.done?34:245,e.done?197:166,e.done?94:35);
-    doc.text(e.done?'✓ Traitée':'En attente',W-M-3,y+7,{align:'right'});
-    y+=13;
-    doc.setTextColor(86,106,135);doc.setFont('helvetica','normal');doc.setFontSize(8);
-    doc.text(`Date : ${fmtD(e.date)}`,M,y);
-    doc.text(`Réf. engrais : ${e.ref||'—'}`,M+36,y);
-    doc.text(`Qté/ha : ${e.q} kg`,M+108,y);
-    y+=5.5;
-    doc.text(`Surface : ${e.surface} ha    Rangs : ${e.rg} × ${e.lon} m`,M,y);
-    y+=9;
-    // Tableau simplifié (sans 9/11 rangs)
-    const rows=[
-      ['Total calculé',`${e.ts} sacs`,`${e.tk} kg`],
-      ['Sacs réels utilisés',`${e.sr} sacs`,`${r2(e.sr*SAC)} kg`],
-    ];
-    const cw=[74,42,38],sx=M;
-    doc.setFillColor(59,122,246);doc.rect(sx,y,154,7,'F');
-    doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(7);
-    ['','Sacs (25 kg)','Kg'].forEach((h,i)=>doc.text(h,sx+cw.slice(0,i).reduce((a,b)=>a+b,0)+3,y+5));
-    y+=7;
-    rows.forEach((row,ri)=>{
-      const isR=ri===1;
-      doc.setFillColor(...(isR?[28,42,78]:[22,30,52]));
-      doc.rect(sx,y,154,7,'F');
-      doc.setFont('helvetica',isR?'bold':'normal');
-      doc.setTextColor(...(isR?[245,166,35]:[107,163,255]));
-      doc.setFontSize(8);
-      row.forEach((cell,ci)=>doc.text(cell,sx+cw.slice(0,ci).reduce((a,b)=>a+b,0)+3,y+5));
-      y+=7;
-    });
-    y+=10;
-  });
-  doc.save(fn+'.pdf');
-  toast('📄 PDF exporté !','success');
-}
-
-function r2(v){return Math.round(v*100)/100}
-
-function showSec(id,btn){
-  document.querySelectorAll('.sec').forEach(s=>s.classList.remove('on'));
-  document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'));
-  document.getElementById('sec-'+id).classList.add('on');
-  btn.classList.add('on');
-  if(id==='historique')renderH();
-}
-
-function toast(msg,type='info'){
-  const el=document.getElementById('toast');
-  el.textContent=msg;el.className=`toast ${type} show`;
-  clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),2800);
-}
-
-init();
-</script>
 </body>
 </html>
