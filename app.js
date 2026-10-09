@@ -138,11 +138,51 @@ function loadState() {
   }
 }
 
-function saveState() {
+function saveLocalOnly() {
   localStorage.setItem(KEYS.PARCELS, JSON.stringify(State.parcels));
   localStorage.setItem(KEYS.CAMPAIGNS, JSON.stringify(State.campaigns));
   localStorage.setItem(KEYS.ACTIVE_CAMP, State.activeCampaignId);
   localStorage.setItem(KEYS.HISTORY, JSON.stringify(State.history));
+}
+
+function syncServer() {
+  const payload = {
+    parcels: State.parcels,
+    campaigns: State.campaigns,
+    activeCampaignId: State.activeCampaignId,
+    history: State.history
+  };
+  fetch('/api/data', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  }).catch(err => console.warn('Server sync offline', err));
+}
+
+async function syncFromServer() {
+  try {
+    const res = await fetch('/api/data');
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data.exists !== false) {
+        if (data.parcels) State.parcels = data.parcels;
+        if (data.campaigns) State.campaigns = data.campaigns;
+        if (data.activeCampaignId) State.activeCampaignId = data.activeCampaignId;
+        if (data.history) State.history = data.history;
+        saveLocalOnly();
+        refreshAllUI();
+      } else {
+        syncServer();
+      }
+    }
+  } catch (err) {
+    console.warn('Server sync unreachable', err);
+  }
+}
+
+function saveState() {
+  saveLocalOnly();
+  syncServer();
 }
 
 // ── ACTIVE CAMPAIGN ACCESSR ──
@@ -1195,17 +1235,20 @@ function bindEvents() {
   });
 }
 
-function initApp() {
-  loadState();
-  bindEvents();
-  
+function refreshAllUI() {
   populateCampaignSelector();
   updateCampagneUI();
   populateParcelSelector();
-  
   renderParcelProgress();
   renderHistoryList();
   renderAdminParcelsList();
+}
+
+function initApp() {
+  loadState();
+  bindEvents();
+  refreshAllUI();
+  syncFromServer();
 }
 
 // Start application logic

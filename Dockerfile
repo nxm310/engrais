@@ -1,8 +1,5 @@
-FROM nginx:alpine
-
-# Copy static web assets to Nginx html root
-COPY . /usr/share/nginx/html
-
+FROM node:22-alpine
+WORKDIR /app
+COPY . .
 EXPOSE 80
-
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["node", "server.js"]
