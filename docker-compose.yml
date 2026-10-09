@@ -1,0 +1,14 @@
+services:
+  engrais:
+    build: .
+    container_name: engrais
+    restart: unless-stopped
+    ports:
+      - "8082:80"
+    labels:
+      - "gethomepage.name=VICON Engrais"
+      - "gethomepage.description=Gestion des apports & parcelles"
+      - "gethomepage.group=Agriculture & Parcelles"
+      - "gethomepage.icon=http://192.168.50.174:8082/vicon-logo.svg"
+      - "gethomepage.href=http://192.168.50.174:8082"
+      - "gethomepage.ping=http://192.168.50.174:8082"

@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <defs>
+    <linearGradient id="vicBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#064e3b"/>
+      <stop offset="100%" stop-color="#022c22"/>
+    </linearGradient>
+    <linearGradient id="sproutGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4ade80"/>
+      <stop offset="100%" stop-color="#16a34a"/>
+    </linearGradient>
+    <linearGradient id="viconRed" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f43f5e"/>
+      <stop offset="100%" stop-color="#be123c"/>
+    </linearGradient>
+    <filter id="vicShadow" x="-15%" y="-15%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="4" stdDeviation="4" flood-opacity="0.5"/>
+    </filter>
+  </defs>
+
+  <!-- Outer Dark Emerald Squircle -->
+  <rect x="4" y="4" width="120" height="120" rx="26" fill="url(#vicBg)" filter="url(#vicShadow)"/>
+  <rect x="4.5" y="4.5" width="119" height="119" rx="25.5" fill="none" stroke="#10b981" stroke-width="1.5" stroke-opacity="0.4"/>
+
+  <!-- Circular Soil / Field Ring -->
+  <circle cx="64" cy="52" r="34" fill="#032117" stroke="url(#sproutGrad)" stroke-width="3" filter="url(#vicShadow)"/>
+
+  <!-- Stylized Agricultural Sprout & Fertilizer Droplet -->
+  <!-- Left Leaf -->
+  <path d="M64 64 C50 62 42 50 45 36 C56 36 64 48 64 64 Z" fill="url(#sproutGrad)"/>
+  <!-- Right Leaf -->
+  <path d="M64 64 C78 62 86 50 83 36 C72 36 64 48 64 64 Z" fill="#22c55e"/>
+  <!-- Stem -->
+  <path d="M64 48 v22" stroke="#4ade80" stroke-width="3.5" stroke-linecap="round"/>
+  <!-- Fertilizer Droplets / Granules -->
+  <circle cx="64" cy="30" r="4.5" fill="#facc15" filter="url(#vicShadow)"/>
+  <circle cx="53" cy="32" r="2.5" fill="#facc15"/>
+  <circle cx="75" cy="32" r="2.5" fill="#facc15"/>
+
+  <!-- VICON Red Badge -->
+  <rect x="22" y="94" width="84" height="20" rx="10" fill="url(#viconRed)" filter="url(#vicShadow)"/>
+  <text x="64" y="108" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="1.5">VICON</text>
+</svg>
