@@ -29,6 +29,7 @@
         <button id="tab-btn-parcelle" class="nav-btn active">📍 Parcelles</button>
         <button id="tab-btn-historique" class="nav-btn">📋 Historique</button>
         <button id="tab-btn-admin-parcelles" class="nav-btn">⚙️ Gérer Parcelles</button>
+        <button id="tab-btn-donnees" class="nav-btn">💾 Données</button>
       </nav>
     </div>
   </header>
@@ -262,14 +263,112 @@
     <section id="sec-admin-parcelles" class="tab-section">
       <div class="histo-top">
         <h2>⚙️ Gestion des parcelles</h2>
-        <button id="btn-admin-add-parcel" class="btn btn-primary">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          Ajouter une parcelle
-        </button>
+        <div class="histo-actions">
+          <button id="btn-admin-add-parcel" class="btn btn-primary">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Ajouter une parcelle
+          </button>
+          <button id="btn-export-parcels-csv" class="btn btn-teal" title="Exporter les parcelles au format CSV">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Export CSV
+          </button>
+          <button id="btn-import-parcels-trigger" class="btn btn-glass" title="Importer des parcelles (CSV ou JSON)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            Importer
+          </button>
+          <input type="file" id="parcels-file-input" accept=".csv,.json" style="display: none;">
+        </div>
       </div>
       
       <!-- List of existing parcels -->
       <div id="admin-parcels-list" class="card-grid" style="margin-top: 10px;"></div>
+    </section>
+
+    <!-- SECTION 4: GESTION DONNEES / BACKUP -->
+    <section id="sec-donnees" class="tab-section">
+      <div class="histo-top">
+        <h2>💾 Sauvegarde & Import / Export</h2>
+      </div>
+
+      <!-- Stats summary strip -->
+      <div class="total-strip" style="margin-bottom: 24px;">
+        <div class="total-item">
+          <span class="total-val" id="backup-stat-parcels">0</span>
+          <span class="total-lbl">parcelles</span>
+        </div>
+        <div class="total-divider"></div>
+        <div class="total-item">
+          <span class="total-val blue" id="backup-stat-campaigns">0</span>
+          <span class="total-lbl">campagnes</span>
+        </div>
+        <div class="total-divider"></div>
+        <div class="total-item">
+          <span class="total-val teal" id="backup-stat-history">0</span>
+          <span class="total-lbl">passages enregistrés</span>
+        </div>
+        <div class="total-divider"></div>
+        <div class="total-item">
+          <span class="total-val amber" id="backup-stat-sync">Local & Serveur</span>
+          <span class="total-lbl">stockage actif</span>
+        </div>
+      </div>
+
+      <div class="card-grid">
+        <!-- EXPORT CARD -->
+        <div class="card glass-panel">
+          <div class="card-title">
+            <span>📤 Exporter vos données</span>
+          </div>
+          <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 18px; line-height: 1.5;">
+            Téléchargez une copie de vos données pour sécuriser vos calculs ou les analyser dans un tableur (Excel, Numbers, LibreOffice).
+          </p>
+          <div style="display: flex; flex-direction: column; gap: 12px;">
+            <button id="btn-export-full-json" class="btn btn-primary" style="justify-content: flex-start; padding: 14px 18px;">
+              <span style="font-size: 1.4rem; margin-right: 10px;">💾</span>
+              <div style="text-align: left;">
+                <div style="font-weight: 700; font-size: 0.95rem;">Sauvegarde complète (JSON)</div>
+                <div style="font-size: 0.78rem; opacity: 0.85;">Toutes les parcelles, campagnes et passages enregistrés</div>
+              </div>
+            </button>
+            <button id="btn-export-all-history-csv" class="btn btn-teal" style="justify-content: flex-start; padding: 14px 18px;">
+              <span style="font-size: 1.4rem; margin-right: 10px;">📊</span>
+              <div style="text-align: left;">
+                <div style="font-weight: 700; font-size: 0.95rem;">Historique complet (CSV)</div>
+                <div style="font-size: 0.78rem; opacity: 0.85;">Tous les passages de toutes les campagnes pour tableur</div>
+              </div>
+            </button>
+            <button id="btn-export-parcels-only-csv" class="btn btn-glass" style="justify-content: flex-start; padding: 14px 18px;">
+              <span style="font-size: 1.4rem; margin-right: 10px;">📍</span>
+              <div style="text-align: left;">
+                <div style="font-weight: 700; font-size: 0.95rem;">Liste des parcelles (CSV)</div>
+                <div style="font-size: 0.78rem; opacity: 0.85;">Noms, surfaces, longueurs et nombres de rangs</div>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <!-- IMPORT CARD -->
+        <div class="card glass-panel">
+          <div class="card-title">
+            <span>📥 Importer des données</span>
+          </div>
+          <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 18px; line-height: 1.5;">
+            Restaurez une sauvegarde JSON complète ou importez une liste de parcelles depuis un fichier CSV ou JSON.
+          </p>
+          
+          <div id="vicon-dropzone" class="file-dropzone" style="border: 2px dashed rgba(59, 130, 246, 0.4); border-radius: var(--radius-md); padding: 30px 20px; text-align: center; cursor: pointer; transition: all var(--transition-fast); background: rgba(59, 130, 246, 0.03);">
+            <div style="font-size: 2.4rem; margin-bottom: 8px;">📁</div>
+            <div style="font-weight: 700; color: var(--text-primary); margin-bottom: 4px;">Cliquez pour choisir un fichier</div>
+            <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 8px;">ou glissez-déposez votre fichier ici</div>
+            <span class="chip blue" style="font-size: 0.75rem;">Formats : .json (sauvegarde) ou .csv (parcelles)</span>
+          </div>
+          <input type="file" id="vicon-file-input" accept=".json,.csv" style="display: none;">
+
+          <div style="margin-top: 16px; padding: 12px; background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-light); border-radius: var(--radius-sm); font-size: 0.82rem; color: var(--text-secondary); line-height: 1.5;">
+            💡 <strong>Protection de vos données :</strong> L'importation analyse le fichier sans modifier vos données et vous demandera de choisir entre <em>Fusionner</em> (conserve vos données) ou <em>Remplacer tout</em>.
+          </div>
+        </div>
+      </div>
     </section>
 
   </main>
@@ -342,6 +441,25 @@
       <button id="btn-delete-parcel" class="btn btn-danger" style="margin-right: auto; display: none;">🗑 Supprimer</button>
       <button id="parcel-editor-cancel" class="btn btn-glass">Annuler</button>
       <button id="parcel-editor-save" class="btn btn-primary">Valider</button>
+    </div>
+  </dialog>
+
+  <!-- 4. IMPORT CONFIRMATION & OPTIONS DIALOG -->
+  <dialog id="import-dialog">
+    <div class="dialog-head">
+      <h3>📥 Importer des données</h3>
+    </div>
+    <p id="import-dialog-summary" class="dialog-desc">Analyse du fichier terminée.</p>
+    <div id="import-dialog-details" style="background: rgba(255, 255, 255, 0.04); border: 1px solid var(--border-light); border-radius: 8px; padding: 14px; margin-bottom: 20px; font-size: 0.88rem; color: var(--text-secondary); line-height: 1.6;"></div>
+    <p style="font-size: 0.85rem; font-weight: 600; color: var(--text-primary); margin-bottom: 12px;">Choisissez le mode d'importation :</p>
+    <div class="dialog-actions" style="gap: 10px; flex-wrap: wrap;">
+      <button id="import-dialog-cancel" class="btn btn-glass" style="margin-right: auto;">Annuler</button>
+      <button id="import-dialog-merge" class="btn btn-teal">
+        🔄 Fusionner (conserver l'existant)
+      </button>
+      <button id="import-dialog-replace" class="btn btn-danger">
+        ⚠️ Remplacer tout
+      </button>
     </div>
   </dialog>
 

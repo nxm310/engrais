@@ -1026,6 +1026,340 @@ function exportCampaignCSV() {
   toast('📊 Données CSV téléchargées avec succès', 'success');
 }
 
+// ── GENERIC DOWNLOAD HELPER ──
+function downloadFile(content, filename, mimeType = 'text/plain;charset=utf-8;') {
+  const blob = new Blob([content], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.setAttribute('href', url);
+  link.setAttribute('download', filename);
+  link.style.visibility = 'hidden';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
+function escapeCsvField(val) {
+  if (val === null || val === undefined) return '""';
+  const str = String(val).replace(/"/g, '""');
+  return `"${str}"`;
+}
+
+// ── FULL JSON BACKUP EXPORT ──
+function exportFullBackupJSON() {
+  const dateStr = new Date().toISOString().slice(0, 10);
+  const payload = {
+    app: "VICON Engrais",
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    parcels: State.parcels,
+    campaigns: State.campaigns,
+    activeCampaignId: State.activeCampaignId,
+    history: State.history
+  };
+  const jsonStr = JSON.stringify(payload, null, 2);
+  downloadFile(jsonStr, `VICON_Sauvegarde_COMPLETE_${dateStr}.json`, 'application/json;charset=utf-8;');
+  toast('💾 Sauvegarde complète exportée avec succès !', 'success');
+}
+
+// ── PARCELS CSV EXPORT ──
+function exportParcelsCSV() {
+  const dateStr = new Date().toISOString().slice(0, 10);
+  if (!State.parcels || State.parcels.length === 0) {
+    toast('Aucune parcelle à exporter', 'warn');
+    return;
+  }
+  const headers = ['Nom', 'Culture', 'Surface_ha', 'Longueur_rang_m', 'Nombre_rangs'];
+  const rows = State.parcels.map(p => [
+    escapeCsvField(p.nom),
+    escapeCsvField(p.cul || 'vigne champenoise'),
+    escapeCsvField(p.surface),
+    escapeCsvField(p.lon),
+    escapeCsvField(p.rg)
+  ]);
+  const csvContent = "\uFEFF" + [
+    headers.join(';'),
+    ...rows.map(r => r.join(';'))
+  ].join('\r\n');
+  downloadFile(csvContent, `VICON_Parcelles_${dateStr}.csv`, 'text/csv;charset=utf-8;');
+  toast('📍 Liste des parcelles exportée en CSV !', 'success');
+}
+
+// ── ALL HISTORY CSV EXPORT ──
+function exportAllHistoryCSV() {
+  const dateStr = new Date().toISOString().slice(0, 10);
+  if (!State.history || State.history.length === 0) {
+    toast('Aucun passage enregistré dans l\'historique', 'warn');
+    return;
+  }
+  const headers = [
+    'Campagne', 'Date', 'Parcelle', 'Culture', 'Surface_ha',
+    'Longueur_rang_m', 'Rangs_Machine_A', 'Rangs_Machine_B',
+    'Dose_kg_ha', 'Kg_Requis', 'Sacs_Theoriques', 'Sacs_Reels', 'Statut'
+  ];
+  const rows = State.history.map(item => {
+    const camp = State.campaigns[item.campId] || { name: 'Inconnue' };
+    return [
+      escapeCsvField(camp.name),
+      escapeCsvField(item.date),
+      escapeCsvField(item.nom),
+      escapeCsvField(item.cul || 'vigne champenoise'),
+      escapeCsvField(item.surface),
+      escapeCsvField(item.lon),
+      escapeCsvField(item.rowsA || 9),
+      escapeCsvField(item.rowsB || 11),
+      escapeCsvField(item.qte),
+      escapeCsvField(item.tk),
+      escapeCsvField(item.ts),
+      escapeCsvField(item.sr !== undefined && item.sr !== '' ? item.sr : item.ts),
+      escapeCsvField(item.isDone ? 'Terminée' : 'En cours')
+    ];
+  });
+  const csvContent = "\uFEFF" + [
+    headers.join(';'),
+    ...rows.map(r => r.join(';'))
+  ].join('\r\n');
+  downloadFile(csvContent, `VICON_Historique_Complet_${dateStr}.csv`, 'text/csv;charset=utf-8;');
+  toast('📊 Historique complet exporté en CSV !', 'success');
+}
+
+// ── IMPORT LOGIC ──
+let pendingImportData = null;
+
+function parseCSVLine(text) {
+  const sep = text.includes(';') ? ';' : ',';
+  const result = [];
+  let cur = '';
+  let inQuotes = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (c === '"') {
+      if (inQuotes && text[i+1] === '"') {
+        cur += '"';
+        i++;
+      } else {
+        inQuotes = !inQuotes;
+      }
+    } else if (c === sep && !inQuotes) {
+      result.push(cur.trim());
+      cur = '';
+    } else {
+      cur += c;
+    }
+  }
+  result.push(cur.trim());
+  return result;
+}
+
+function parseCSVParcels(csvText) {
+  const lines = csvText.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n').filter(l => l.trim().length > 0);
+  if (lines.length < 2) return [];
+  const header = parseCSVLine(lines[0]).map(h => h.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, ""));
+  
+  const nomIdx = header.findIndex(h => h.includes('nom') || h.includes('parcelle'));
+  const culIdx = header.findIndex(h => h.includes('cul') || h.includes('type'));
+  const surfIdx = header.findIndex(h => h.includes('surf') || h.includes('ha'));
+  const lonIdx = header.findIndex(h => h.includes('long') || h.includes('lon'));
+  const rgIdx = header.findIndex(h => h.includes('rang') || h.includes('rg'));
+
+  const parcels = [];
+  for (let i = 1; i < lines.length; i++) {
+    const cols = parseCSVLine(lines[i]);
+    if (!cols || cols.length === 0) continue;
+    const nom = (nomIdx >= 0 && cols[nomIdx]) ? cols[nomIdx] : cols[0];
+    if (!nom || nom.trim() === '') continue;
+    const cul = (culIdx >= 0 && cols[culIdx]) ? cols[culIdx] : 'vigne champenoise';
+    const surfStr = (surfIdx >= 0 && cols[surfIdx]) ? cols[surfIdx].replace(',', '.') : (cols[1] ? cols[1].replace(',', '.') : '0.1');
+    const surface = parseFloat(surfStr) || 0.1;
+    const lonStr = (lonIdx >= 0 && cols[lonIdx]) ? cols[lonIdx].replace(',', '.') : (cols[2] ? cols[2].replace(',', '.') : '100');
+    const lon = parseFloat(lonStr) || 100;
+    const rgStr = (rgIdx >= 0 && cols[rgIdx]) ? cols[rgIdx] : (cols[3] || '20');
+    const rg = parseInt(rgStr, 10) || 20;
+
+    parcels.push({ nom: nom.trim(), cul: cul.trim(), surface, lon, rg });
+  }
+  return parcels;
+}
+
+function handleImportFile(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  const isJson = file.name.toLowerCase().endsWith('.json');
+  const isCsv = file.name.toLowerCase().endsWith('.csv');
+
+  if (!isJson && !isCsv) {
+    toast('Format non supporté. Veuillez utiliser un fichier .json ou .csv', 'error');
+    return;
+  }
+
+  reader.onload = (e) => {
+    try {
+      const text = e.target.result;
+      pendingImportData = null;
+
+      if (isJson) {
+        const parsed = JSON.parse(text);
+        if (parsed.parcels || parsed.campaigns || parsed.history) {
+          pendingImportData = {
+            type: 'full',
+            parcels: Array.isArray(parsed.parcels) ? parsed.parcels : [],
+            campaigns: parsed.campaigns && typeof parsed.campaigns === 'object' ? parsed.campaigns : {},
+            activeCampaignId: parsed.activeCampaignId || null,
+            history: Array.isArray(parsed.history) ? parsed.history : []
+          };
+        } else if (Array.isArray(parsed)) {
+          if (parsed.length > 0 && parsed[0].nom !== undefined && (parsed[0].surface !== undefined || parsed[0].rg !== undefined)) {
+            pendingImportData = {
+              type: 'parcels',
+              parcels: parsed
+            };
+          } else if (parsed.length > 0 && parsed[0].campId !== undefined) {
+            pendingImportData = {
+              type: 'history',
+              history: parsed
+            };
+          } else {
+            throw new Error('Structure JSON non reconnue');
+          }
+        } else {
+          throw new Error('Structure JSON non reconnue');
+        }
+      } else if (isCsv) {
+        const parsedParcels = parseCSVParcels(text);
+        if (parsedParcels.length === 0) {
+          throw new Error('Aucune parcelle valide détectée dans le fichier CSV');
+        }
+        pendingImportData = {
+          type: 'parcels',
+          parcels: parsedParcels
+        };
+      }
+
+      openImportDialog(file.name);
+    } catch (err) {
+      console.error(err);
+      toast('Erreur lecture fichier : ' + (err.message || 'Format invalide'), 'error');
+    }
+  };
+  reader.readAsText(file);
+}
+
+function openImportDialog(filename) {
+  const dialog = document.getElementById('import-dialog');
+  if (!dialog) return;
+  const descEl = document.getElementById('import-dialog-summary');
+  const detailsEl = document.getElementById('import-dialog-details');
+
+  if (descEl) descEl.textContent = `Fichier sélectionné : ${filename}`;
+
+  let detailsHtml = '';
+  if (pendingImportData.type === 'full') {
+    const numParcels = pendingImportData.parcels.length;
+    const numCamps = Object.keys(pendingImportData.campaigns).length;
+    const numHist = pendingImportData.history.length;
+    detailsHtml = `
+      <div><strong>📦 Sauvegarde complète VICON :</strong></div>
+      <ul style="margin: 8px 0 0 18px; line-height: 1.6;">
+        <li>📍 <strong>${numParcels}</strong> parcelles</li>
+        <li>📅 <strong>${numCamps}</strong> campagnes</li>
+        <li>📋 <strong>${numHist}</strong> passages enregistrés</li>
+      </ul>
+    `;
+  } else if (pendingImportData.type === 'parcels') {
+    detailsHtml = `
+      <div><strong>📍 Liste de parcelles détectée :</strong></div>
+      <div style="margin-top: 6px;"><strong>${pendingImportData.parcels.length}</strong> parcelles prêtes à être importées.</div>
+    `;
+  } else if (pendingImportData.type === 'history') {
+    detailsHtml = `
+      <div><strong>📋 Historique de passages détecté :</strong></div>
+      <div style="margin-top: 6px;"><strong>${pendingImportData.history.length}</strong> passages prêts à être importés.</div>
+    `;
+  }
+
+  if (detailsEl) detailsEl.innerHTML = detailsHtml;
+  dialog.showModal();
+}
+
+function closeImportDialog() {
+  const dialog = document.getElementById('import-dialog');
+  if (dialog) dialog.close();
+  pendingImportData = null;
+  const fileInput1 = document.getElementById('vicon-file-input');
+  if (fileInput1) fileInput1.value = '';
+  const fileInput2 = document.getElementById('parcels-file-input');
+  if (fileInput2) fileInput2.value = '';
+}
+
+function applyImport(mode) {
+  if (!pendingImportData) return;
+
+  if (mode === 'replace') {
+    if (pendingImportData.type === 'full') {
+      State.parcels = pendingImportData.parcels.length > 0 ? pendingImportData.parcels : [...DEFAULT_PARCELS];
+      State.campaigns = Object.keys(pendingImportData.campaigns).length > 0 ? pendingImportData.campaigns : State.campaigns;
+      if (pendingImportData.activeCampaignId && State.campaigns[pendingImportData.activeCampaignId]) {
+        State.activeCampaignId = pendingImportData.activeCampaignId;
+      } else {
+        State.activeCampaignId = Object.keys(State.campaigns)[0] || '';
+      }
+      State.history = pendingImportData.history || [];
+    } else if (pendingImportData.type === 'parcels') {
+      State.parcels = pendingImportData.parcels;
+    } else if (pendingImportData.type === 'history') {
+      State.history = pendingImportData.history;
+    }
+  } else if (mode === 'merge') {
+    if (pendingImportData.parcels && pendingImportData.parcels.length > 0) {
+      pendingImportData.parcels.forEach(np => {
+        const existingIdx = State.parcels.findIndex(p => p.nom.toLowerCase() === np.nom.toLowerCase());
+        if (existingIdx >= 0) {
+          State.parcels[existingIdx] = { ...State.parcels[existingIdx], ...np };
+        } else {
+          State.parcels.push(np);
+        }
+      });
+    }
+
+    if (pendingImportData.campaigns) {
+      Object.entries(pendingImportData.campaigns).forEach(([id, c]) => {
+        if (!State.campaigns[id]) {
+          State.campaigns[id] = c;
+        } else {
+          State.campaigns[id] = { ...State.campaigns[id], ...c };
+        }
+      });
+      if (!State.campaigns[State.activeCampaignId]) {
+        State.activeCampaignId = Object.keys(State.campaigns)[0] || '';
+      }
+    }
+
+    if (pendingImportData.history && pendingImportData.history.length > 0) {
+      pendingImportData.history.forEach(nh => {
+        const exists = State.history.some(h => (h.id && h.id === nh.id) || (h.campId === nh.campId && h.nom === nh.nom && h.date === nh.date));
+        if (!exists) {
+          State.history.unshift(nh);
+        }
+      });
+    }
+  }
+
+  saveState();
+  refreshAllUI();
+  closeImportDialog();
+  toast(mode === 'replace' ? '✅ Sauvegarde restaurée avec succès !' : '✅ Données fusionnées avec succès !', 'success');
+}
+
+function renderBackupStats() {
+  const pEl = document.getElementById('backup-stat-parcels');
+  const cEl = document.getElementById('backup-stat-campaigns');
+  const hEl = document.getElementById('backup-stat-history');
+  if (pEl) pEl.textContent = State.parcels ? State.parcels.length : 0;
+  if (cEl) cEl.textContent = State.campaigns ? Object.keys(State.campaigns).length : 0;
+  if (hEl) hEl.textContent = State.history ? State.history.length : 0;
+}
+
 // ── DEDICATED PARCELS ADMIN LIST ──
 function renderAdminParcelsList() {
   const listEl = document.getElementById('admin-parcels-list');
@@ -1103,7 +1437,8 @@ function renderAdminParcelsList() {
 function switchTab(tabId, triggerBtn) {
   // Toggle sections
   document.querySelectorAll('.tab-section').forEach(sec => sec.classList.remove('active'));
-  document.getElementById('sec-' + tabId).classList.add('active');
+  const targetSec = document.getElementById('sec-' + tabId);
+  if (targetSec) targetSec.classList.add('active');
 
   // Toggle active buttons
   document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
@@ -1113,6 +1448,8 @@ function switchTab(tabId, triggerBtn) {
     renderHistoryList();
   } else if (tabId === 'admin-parcelles') {
     renderAdminParcelsList();
+  } else if (tabId === 'donnees') {
+    renderBackupStats();
   }
 }
 
@@ -1233,6 +1570,74 @@ function bindEvents() {
   document.getElementById('tab-btn-admin-parcelles').addEventListener('click', (evt) => {
     switchTab('admin-parcelles', evt.currentTarget);
   });
+  const tabBtnDonnees = document.getElementById('tab-btn-donnees');
+  if (tabBtnDonnees) {
+    tabBtnDonnees.addEventListener('click', (evt) => {
+      switchTab('donnees', evt.currentTarget);
+    });
+  }
+
+  // Backup & Import / Export listeners
+  const btnExportFullJson = document.getElementById('btn-export-full-json');
+  if (btnExportFullJson) btnExportFullJson.addEventListener('click', exportFullBackupJSON);
+
+  const btnExportAllHistoryCsv = document.getElementById('btn-export-all-history-csv');
+  if (btnExportAllHistoryCsv) btnExportAllHistoryCsv.addEventListener('click', exportAllHistoryCSV);
+
+  const btnExportParcelsOnlyCsv = document.getElementById('btn-export-parcels-only-csv');
+  if (btnExportParcelsOnlyCsv) btnExportParcelsOnlyCsv.addEventListener('click', exportParcelsCSV);
+
+  const btnExportParcelsCsv = document.getElementById('btn-export-parcels-csv');
+  if (btnExportParcelsCsv) btnExportParcelsCsv.addEventListener('click', exportParcelsCSV);
+
+  // File import triggers
+  const viconDropzone = document.getElementById('vicon-dropzone');
+  const viconFileInput = document.getElementById('vicon-file-input');
+  if (viconDropzone && viconFileInput) {
+    viconDropzone.addEventListener('click', () => viconFileInput.click());
+    viconFileInput.addEventListener('change', (e) => {
+      if (e.target.files && e.target.files[0]) {
+        handleImportFile(e.target.files[0]);
+      }
+    });
+
+    // Drag and drop
+    viconDropzone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      viconDropzone.classList.add('dragover');
+    });
+    viconDropzone.addEventListener('dragleave', () => {
+      viconDropzone.classList.remove('dragover');
+    });
+    viconDropzone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      viconDropzone.classList.remove('dragover');
+      if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+        handleImportFile(e.dataTransfer.files[0]);
+      }
+    });
+  }
+
+  const btnImportParcelsTrigger = document.getElementById('btn-import-parcels-trigger');
+  const parcelsFileInput = document.getElementById('parcels-file-input');
+  if (btnImportParcelsTrigger && parcelsFileInput) {
+    btnImportParcelsTrigger.addEventListener('click', () => parcelsFileInput.click());
+    parcelsFileInput.addEventListener('change', (e) => {
+      if (e.target.files && e.target.files[0]) {
+        handleImportFile(e.target.files[0]);
+      }
+    });
+  }
+
+  // Import dialog actions
+  const importCancel = document.getElementById('import-dialog-cancel');
+  if (importCancel) importCancel.addEventListener('click', closeImportDialog);
+
+  const importMerge = document.getElementById('import-dialog-merge');
+  if (importMerge) importMerge.addEventListener('click', () => applyImport('merge'));
+
+  const importReplace = document.getElementById('import-dialog-replace');
+  if (importReplace) importReplace.addEventListener('click', () => applyImport('replace'));
 }
 
 function refreshAllUI() {
@@ -1242,6 +1647,7 @@ function refreshAllUI() {
   renderParcelProgress();
   renderHistoryList();
   renderAdminParcelsList();
+  renderBackupStats();
 }
 
 function initApp() {

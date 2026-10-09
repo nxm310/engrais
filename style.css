@@ -1385,3 +1385,22 @@ dialog[open]::backdrop {
   }
 }
 
+/* File Dropzone & Backup UI */
+.file-dropzone {
+  border: 2px dashed rgba(59, 130, 246, 0.4);
+  border-radius: var(--radius-md);
+  padding: 30px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  background: rgba(59, 130, 246, 0.03);
+}
+
+.file-dropzone:hover,
+.file-dropzone.dragover {
+  border-color: var(--neon-blue) !important;
+  background: rgba(59, 130, 246, 0.1) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 0 20px var(--neon-blue-glow);
+}
+
